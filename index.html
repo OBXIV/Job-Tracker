@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IT Pipeline Tracker</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f4f6f9;
+      --surface: #ffffff;
+      --surface2: #f8fafc;
+      --border: #e2e8f0;
+      --border2: #cbd5e1;
+      --text: #1e293b;
+      --text2: #64748b;
+      --text3: #94a3b8;
+      --primary: #3b82f6;
+      --primary-dark: #2563eb;
+
+      --applied: #3b82f6;
+      --applied-bg: #eff6ff;
+      --outreach: #8b5cf6;
+      --outreach-bg: #f5f3ff;
+      --phone: #f59e0b;
+      --phone-bg: #fffbeb;
+      --interview: #f97316;
+      --interview-bg: #fff7ed;
+      --final: #ef4444;
+      --final-bg: #fef2f2;
+      --offer: #10b981;
+      --offer-bg: #ecfdf5;
+      --rejected: #6b7280;
+      --rejected-bg: #f9fafb;
+      --withdrawn: #94a3b8;
+      --withdrawn-bg: #f8fafc;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      font-size: 14px;
+    }
+
+    /* ── Header ── */
+    header {
+      background: #1e293b;
+      color: #fff;
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .header-logo {
+      width: 32px; height: 32px;
+      background: var(--primary);
+      border-radius: 8px;
+      display: grid; place-items: center;
+      font-size: 16px;
+    }
+    header h1 { font-size: 16px; font-weight: 600; }
+    .header-right { display: flex; align-items: center; gap: 8px; }
+
+    /* ── Stats Bar ── */
+    .stats-bar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      display: flex;
+      gap: 0;
+    }
+    .stat-item {
+      padding: 14px 24px;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 120px;
+    }
+    .stat-item:first-child { padding-left: 0; }
+    .stat-value { font-size: 22px; font-weight: 700; color: var(--text); }
+    .stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--text2); font-weight: 500; }
+    .stat-item.green .stat-value { color: #10b981; }
+    .stat-item.amber .stat-value { color: #f59e0b; }
+    .stat-item.red .stat-value { color: #ef4444; }
+    .stat-item.purple .stat-value { color: #8b5cf6; }
+
+    /* ── Toolbar ── */
+    .toolbar {
+      padding: 16px 24px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .search-wrap { position: relative; flex: 1; min-width: 200px; max-width: 360px; }
+    .search-wrap input {
+      width: 100%;
+      padding: 8px 12px 8px 36px;
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      background: var(--surface);
+      font-size: 13px;
+      color: var(--text);
+      outline: none;
+      transition: border-color .15s;
+    }
+    .search-wrap input:focus { border-color: var(--primary); }
+    .search-icon {
+      position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+      color: var(--text3); pointer-events: none;
+    }
+    select, .btn {
+      padding: 8px 14px;
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      background: var(--surface);
+      font-size: 13px;
+      color: var(--text);
+      cursor: pointer;
+      outline: none;
+      font-family: inherit;
+    }
+    select:focus { border-color: var(--primary); }
+    .btn { display: flex; align-items: center; gap: 6px; font-weight: 500; transition: all .15s; }
+    .btn:hover { background: var(--surface2); }
+    .btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .btn.primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); }
+    .btn.danger { color: #ef4444; }
+    .btn.danger:hover { background: #fef2f2; border-color: #fca5a5; }
+
+    .view-toggle {
+      display: flex;
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--surface);
+    }
+    .view-toggle button {
+      padding: 7px 14px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--text2);
+      font-family: inherit;
+      display: flex; align-items: center; gap: 5px;
+      transition: all .15s;
+    }
+    .view-toggle button.active { background: var(--primary); color: #fff; }
+    .view-toggle button:not(.active):hover { background: var(--surface2); }
+
+    .toolbar-right { margin-left: auto; display: flex; gap: 8px; }
+
+    /* ── Table View ── */
+    .view-container { padding: 0 24px 32px; }
+
+    .table-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      padding: 11px 14px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--text2);
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+    thead th:hover { color: var(--text); }
+    thead th .sort-icon { display: inline-block; margin-left: 4px; opacity: .4; }
+    thead th.sorted .sort-icon { opacity: 1; color: var(--primary); }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--surface2); }
+    tbody td { padding: 12px 14px; vertical-align: middle; }
+    .td-num { color: var(--text3); font-size: 12px; width: 40px; }
+    .td-company { font-weight: 600; color: var(--text); }
+    .td-role { color: var(--text2); font-size: 13px; max-width: 220px; }
+    .td-date { color: var(--text2); white-space: nowrap; font-size: 13px; }
+    .td-contact { color: var(--text2); font-size: 13px; }
+    .td-notes { color: var(--text2); font-size: 12px; max-width: 260px; }
+    .td-actions { white-space: nowrap; width: 80px; }
+    .icon-btn {
+      background: none; border: none; cursor: pointer; padding: 4px 6px;
+      border-radius: 6px; color: var(--text3); font-size: 15px;
+      transition: all .15s;
+    }
+    .icon-btn:hover { background: var(--surface2); color: var(--text); }
+    .icon-btn.delete:hover { background: #fef2f2; color: #ef4444; }
+
+    /* ── Stage Badge ── */
+    .stage-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 9px; border-radius: 20px;
+      font-size: 11px; font-weight: 600; white-space: nowrap;
+    }
+    .stage-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .stage-Applied    { background: var(--applied-bg);   color: var(--applied);   }
+    .stage-Applied    .stage-dot { background: var(--applied); }
+    .stage-HM-Outreach{ background: var(--outreach-bg); color: var(--outreach); }
+    .stage-HM-Outreach .stage-dot { background: var(--outreach); }
+    .stage-Phone-Screen{ background: var(--phone-bg);   color: #b45309; }
+    .stage-Phone-Screen .stage-dot { background: var(--phone); }
+    .stage-Interview  { background: var(--interview-bg); color: #c2410c; }
+    .stage-Interview  .stage-dot { background: var(--interview); }
+    .stage-Final-Round{ background: var(--final-bg);   color: #b91c1c; }
+    .stage-Final-Round .stage-dot { background: var(--final); }
+    .stage-Offer      { background: var(--offer-bg);   color: #047857; }
+    .stage-Offer      .stage-dot { background: var(--offer); }
+    .stage-Rejected   { background: var(--rejected-bg); color: var(--rejected); }
+    .stage-Rejected   .stage-dot { background: var(--rejected); }
+    .stage-Withdrawn  { background: var(--withdrawn-bg); color: var(--withdrawn); }
+    .stage-Withdrawn  .stage-dot { background: var(--withdrawn); }
+
+    /* ── Kanban View ── */
+    .kanban-board {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      padding-bottom: 12px;
+    }
+    .kanban-col {
+      flex: 0 0 240px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .kanban-col-header {
+      padding: 10px 12px;
+      border-radius: 8px 8px 0 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      border-bottom: 2px solid transparent;
+    }
+    .kanban-count {
+      background: rgba(0,0,0,.1);
+      border-radius: 10px;
+      padding: 1px 7px;
+      font-size: 11px;
+    }
+    .kanban-cards { display: flex; flex-direction: column; gap: 8px; }
+    .kanban-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      cursor: pointer;
+      transition: box-shadow .15s, transform .1s;
+    }
+    .kanban-card:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,.08);
+      transform: translateY(-1px);
+    }
+    .kanban-card-company { font-weight: 600; font-size: 13px; margin-bottom: 2px; }
+    .kanban-card-role { font-size: 12px; color: var(--text2); margin-bottom: 6px; line-height: 1.4; }
+    .kanban-card-date { font-size: 11px; color: var(--text3); }
+    .kanban-card-contact { font-size: 11px; color: var(--outreach); margin-top: 4px; }
+    .kanban-card-notes { font-size: 11px; color: var(--text2); margin-top: 4px; font-style: italic; }
+
+    /* Stage colors for kanban */
+    .col-Applied       { background: var(--applied-bg);   border-color: var(--applied);   color: var(--applied); }
+    .col-HM\ Outreach  { background: var(--outreach-bg);  border-color: var(--outreach);  color: var(--outreach); }
+    .col-Phone\ Screen { background: var(--phone-bg);     border-color: var(--phone);     color: #b45309; }
+    .col-Interview     { background: var(--interview-bg); border-color: var(--interview); color: #c2410c; }
+    .col-Final\ Round  { background: var(--final-bg);     border-color: var(--final);     color: #b91c1c; }
+    .col-Offer         { background: var(--offer-bg);     border-color: var(--offer);     color: #047857; }
+    .col-Rejected      { background: var(--rejected-bg);  border-color: #d1d5db;          color: var(--rejected); }
+    .col-Withdrawn     { background: var(--withdrawn-bg); border-color: #cbd5e1;          color: var(--withdrawn); }
+
+    /* ── Empty State ── */
+    .empty-state {
+      text-align: center; padding: 64px 24px;
+      color: var(--text2);
+    }
+    .empty-state-icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-state h3 { font-size: 16px; margin-bottom: 4px; color: var(--text); }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.4);
+      display: grid; place-items: center;
+      z-index: 200;
+      opacity: 0; visibility: hidden;
+      transition: opacity .2s;
+    }
+    .modal-overlay.open { opacity: 1; visibility: visible; }
+    .modal {
+      background: var(--surface);
+      border-radius: 16px;
+      width: 560px;
+      max-width: calc(100vw - 48px);
+      max-height: calc(100vh - 80px);
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,.2);
+      transform: scale(.96);
+      transition: transform .2s;
+    }
+    .modal-overlay.open .modal { transform: scale(1); }
+    .modal-header {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .modal-title { font-size: 16px; font-weight: 600; }
+    .modal-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; }
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      display: flex; justify-content: flex-end; gap: 8px;
+    }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    label { font-size: 12px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .04em; }
+    input[type=text], input[type=date], textarea, select.form-select {
+      padding: 9px 12px;
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      font-size: 14px;
+      color: var(--text);
+      background: var(--surface);
+      font-family: inherit;
+      outline: none;
+      transition: border-color .15s;
+      width: 100%;
+    }
+    input[type=text]:focus, input[type=date]:focus, textarea:focus, select.form-select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59,130,246,.1);
+    }
+    textarea { resize: vertical; min-height: 72px; }
+
+    /* ── Pagination / footer ── */
+    .table-footer {
+      padding: 10px 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface2);
+      font-size: 12px;
+      color: var(--text2);
+    }
+    .pagination { display: flex; gap: 4px; }
+    .page-btn {
+      padding: 4px 10px;
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 12px;
+      color: var(--text2);
+    }
+    .page-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .page-btn:hover:not(.active) { background: var(--surface2); }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: #1e293b; color: #fff;
+      padding: 12px 18px; border-radius: 10px;
+      font-size: 13px; font-weight: 500;
+      box-shadow: 0 8px 24px rgba(0,0,0,.2);
+      transform: translateY(80px);
+      opacity: 0;
+      transition: all .3s;
+      z-index: 300;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.green { background: #047857; }
+
+    /* ── Data Menu ── */
+    .data-menu-wrap { position: relative; }
+    .data-menu {
+      position: absolute; right: 0; top: calc(100% + 6px);
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.12);
+      min-width: 190px;
+      overflow: hidden;
+      z-index: 150;
+      display: none;
+    }
+    .data-menu.open { display: block; }
+    .data-menu-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 11px 16px;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--text);
+      transition: background .1s;
+      border: none; background: none; width: 100%; text-align: left; font-family: inherit;
+    }
+    .data-menu-item:hover { background: var(--surface2); }
+    .data-menu-item .menu-icon { font-size: 15px; width: 20px; text-align: center; }
+    .data-menu-item .menu-desc { font-size: 11px; color: var(--text3); display: block; }
+    .data-menu-divider { border: none; border-top: 1px solid var(--border); margin: 4px 0; }
+
+    /* ── Import confirm modal ── */
+    .import-option {
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: border-color .15s, background .15s;
+    }
+    .import-option:hover { border-color: var(--primary); background: var(--applied-bg); }
+    .import-option.selected { border-color: var(--primary); background: var(--applied-bg); }
+    .import-option-title { font-weight: 600; font-size: 14px; margin-bottom: 3px; }
+    .import-option-desc { font-size: 12px; color: var(--text2); line-height: 1.4; }
+
+    /* Scrollbar */
+    .kanban-board::-webkit-scrollbar { height: 6px; }
+    .kanban-board::-webkit-scrollbar-track { background: transparent; }
+    .kanban-board::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+    /* ── Storage banner ── */
+    .storage-banner {
+      display: none;
+      background: #fffbeb;
+      border-bottom: 1px solid #fde68a;
+      padding: 10px 24px;
+      font-size: 13px;
+      color: #92400e;
+      align-items: center;
+      gap: 10px;
+    }
+    .storage-banner.show { display: flex; }
+    .storage-banner strong { font-weight: 600; }
+    .storage-banner .banner-btn {
+      margin-left: auto; flex-shrink: 0;
+      padding: 5px 12px;
+      background: #f59e0b; color: #fff;
+      border: none; border-radius: 6px;
+      font-size: 12px; font-weight: 600;
+      cursor: pointer; font-family: inherit;
+    }
+    .storage-banner .banner-btn:hover { background: #d97706; }
+
+    @media (max-width: 640px) {
+      .stats-bar { overflow-x: auto; }
+      .stat-item { min-width: 100px; padding: 12px 16px; }
+      .toolbar { padding: 12px 16px; }
+      .view-container { padding: 0 16px 24px; }
+      .form-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div class="header-left">
+    <div class="header-logo">📋</div>
+    <h1>IT Pipeline Tracker</h1>
+  </div>
+  <div class="header-right">
+    <button class="btn primary" onclick="openModal()">+ Add Application</button>
+  </div>
+</header>
+
+<!-- Storage Banner (shown when localStorage is unavailable) -->
+<div class="storage-banner" id="storageBanner">
+  <span>⚠️</span>
+  <span><strong>Changes won't persist between sessions on this device.</strong> Export JSON before closing to save your work, then Import it next time you open the file.</span>
+  <button class="banner-btn" onclick="exportJSON()">Export Now</button>
+</div>
+
+<!-- Stats Bar -->
+<div class="stats-bar" id="statsBar"></div>
+
+<!-- Toolbar -->
+<div class="toolbar">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="Search company, role, notes…" oninput="applyFilters()">
+  </div>
+  <select id="stageFilter" onchange="applyFilters()">
+    <option value="">All Stages</option>
+    <option>Applied</option>
+    <option>HM Outreach</option>
+    <option>Phone Screen</option>
+    <option>Interview</option>
+    <option>Final Round</option>
+    <option>Offer</option>
+    <option>Rejected</option>
+    <option>Withdrawn</option>
+  </select>
+  <select id="sortField" onchange="applyFilters()">
+    <option value="applied-desc">Date: Newest First</option>
+    <option value="applied-asc">Date: Oldest First</option>
+    <option value="company-asc">Company A→Z</option>
+    <option value="company-desc">Company Z→A</option>
+    <option value="stage-asc">Stage</option>
+  </select>
+  <div class="toolbar-right">
+    <div class="view-toggle">
+      <button id="btnTable" class="active" onclick="setView('table')">☰ Table</button>
+      <button id="btnKanban" onclick="setView('kanban')">⊞ Kanban</button>
+    </div>
+    <div class="data-menu-wrap" id="dataMenuWrap">
+      <button class="btn" onclick="toggleDataMenu(event)">⇅ Data ▾</button>
+      <div class="data-menu" id="dataMenu">
+        <button class="data-menu-item" onclick="exportJSON()">
+          <span class="menu-icon">↓</span>
+          <span>Export JSON<span class="menu-desc">Full backup · for re-importing</span></span>
+        </button>
+        <button class="data-menu-item" onclick="exportCSV()">
+          <span class="menu-icon">↓</span>
+          <span>Export CSV<span class="menu-desc">For Numbers or Excel</span></span>
+        </button>
+        <hr class="data-menu-divider">
+        <button class="data-menu-item" onclick="triggerImport()">
+          <span class="menu-icon">↑</span>
+          <span>Import JSON<span class="menu-desc">Load a previously exported file</span></span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden file input for import -->
+<input type="file" id="importInput" accept=".json" style="display:none" onchange="handleImport(event)">
+
+<!-- Content -->
+<div class="view-container">
+  <div id="tableView"></div>
+  <div id="kanbanView" style="display:none"></div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">Add Application</div>
+      <button class="icon-btn" onclick="closeModal()" style="font-size:20px">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editId">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Company *</label>
+          <input type="text" id="fCompany" placeholder="e.g. Acme Corp">
+        </div>
+        <div class="form-group">
+          <label>Role *</label>
+          <input type="text" id="fRole" placeholder="e.g. Director of IT">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Date Applied</label>
+          <input type="date" id="fApplied">
+        </div>
+        <div class="form-group">
+          <label>Stage</label>
+          <select class="form-select" id="fStage">
+            <option>Applied</option>
+            <option>HM Outreach</option>
+            <option>Phone Screen</option>
+            <option>Interview</option>
+            <option>Final Round</option>
+            <option>Offer</option>
+            <option>Rejected</option>
+            <option>Withdrawn</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>HM Contact</label>
+        <input type="text" id="fContact" placeholder="Name of hiring manager or recruiter">
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="fNotes" placeholder="Location, salary, status updates…"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn primary" onclick="saveEntry()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Import Confirm Modal -->
+<div class="modal-overlay" id="importOverlay" onclick="handleImportOverlayClick(event)">
+  <div class="modal" style="width:480px">
+    <div class="modal-header">
+      <div class="modal-title">Import Data</div>
+      <button class="icon-btn" onclick="closeImportModal()" style="font-size:20px">×</button>
+    </div>
+    <div class="modal-body">
+      <p id="importSummary" style="color:var(--text2);font-size:14px;line-height:1.5"></p>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px">
+        <div class="import-option selected" id="optReplace" onclick="selectImportMode('replace')">
+          <div class="import-option-title">Replace All</div>
+          <div class="import-option-desc">Wipe current data and load the imported file. Use this when the file is your most up-to-date copy.</div>
+        </div>
+        <div class="import-option" id="optMerge" onclick="selectImportMode('merge')">
+          <div class="import-option-title">Merge</div>
+          <div class="import-option-desc">Keep your current data and add any new entries from the file (matched by ID). Good for picking up additions from another device without losing local changes.</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeImportModal()">Cancel</button>
+      <button class="btn primary" onclick="confirmImport()">Import</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Initial Dataset ──────────────────────────────────────────────────────────
+const INITIAL_DATA = [
+  {"id":1,"company":"Raising Cane's","role":"Senior IT Manager","applied":"2026-04-30","stage":"Rejected","hmContact":"","notes":"Rejected via email 5/2"},
+  {"id":2,"company":"Applied Digital","role":"Director of IT","applied":"2026-04-30","stage":"Applied","hmContact":"","notes":""},
+  {"id":3,"company":"SGF Global","role":"IT Manager","applied":"2026-04-30","stage":"Applied","hmContact":"","notes":""},
+  {"id":4,"company":"United Pacific Bank","role":"Head of Security & IT","applied":"2026-04-30","stage":"Applied","hmContact":"","notes":""},
+  {"id":5,"company":"HEXPOL","role":"Director of IT","applied":"2026-04-30","stage":"Applied","hmContact":"","notes":""},
+  {"id":6,"company":"Oldcastle Building Envelope","role":"Director of Network Architecture & Engineering","applied":"2026-04-30","stage":"Rejected","hmContact":"","notes":"Rejected 5/8"},
+  {"id":7,"company":"Compunet (Utah)","role":"Account Executive","applied":"2026-04-29","stage":"Rejected","hmContact":"","notes":"Rejected"},
+  {"id":8,"company":"HumCap","role":"Director of IT","applied":"2026-04-29","stage":"Applied","hmContact":"","notes":""},
+  {"id":9,"company":"Ledgent","role":"Regional IT Infrastructure Manager","applied":"2026-04-29","stage":"Applied","hmContact":"","notes":""},
+  {"id":10,"company":"Darkhive","role":"IT Manager","applied":"2026-04-28","stage":"Rejected","hmContact":"Brianne Matlage","notes":"Rejected 5/12 · Feedback requested"},
+  {"id":11,"company":"St. Lukes","role":"IHT Process Manager","applied":"2026-04-27","stage":"Rejected","hmContact":"","notes":"Rejected 5/2"},
+  {"id":12,"company":"Western Trailers Manufacturing","role":"IT Manager","applied":"2026-04-27","stage":"Applied","hmContact":"","notes":""},
+  {"id":13,"company":"Base Power Company","role":"Head of IT & Security","applied":"2026-04-27","stage":"Applied","hmContact":"","notes":""},
+  {"id":14,"company":"Skylight","role":"Director of IT","applied":"2026-04-27","stage":"Applied","hmContact":"","notes":""},
+  {"id":15,"company":"Aravo","role":"Senior Manager IT","applied":"2026-04-27","stage":"Interview","hmContact":"Mark Kizer","notes":"Phone screen 5/13 · TX presence 1-4x/year"},
+  {"id":16,"company":"GFiber","role":"Regional IT Manager","applied":"2026-04-26","stage":"Rejected","hmContact":"","notes":""},
+  {"id":17,"company":"AWS","role":"Data Center Operations Manager","applied":"2026-04-24","stage":"Rejected","hmContact":"","notes":"Rejected 4/27"},
+  {"id":18,"company":"Ben E. Keith","role":"IT Service Delivery Manager","applied":"2026-04-18","stage":"Phone Screen","hmContact":"","notes":"Phone screen 4/20 · No response"},
+  {"id":19,"company":"Micron Technology","role":"Sr. Manager of Computing","applied":"2026-04-08","stage":"Rejected","hmContact":"","notes":"Rejected 5/13 after 2nd interview"},
+  {"id":20,"company":"Idaho Trust Company","role":"IT Manager","applied":"2026-04-04","stage":"Rejected","hmContact":"Owner/President","notes":"Ghosted · Job reposted"},
+  {"id":21,"company":"Brighton Corporation","role":"IT Manager","applied":"2026-03-28","stage":"Rejected","hmContact":"","notes":"Final Exec Interview 4/10 · Rejected"},
+  {"id":22,"company":"Experis (Client TBD)","role":"IT Manager - Data Operations & Platforms","applied":"2026-05-02","stage":"Applied","hmContact":"","notes":"Via Experis staffing"},
+  {"id":23,"company":"Anchor Talent (Client TBD)","role":"Director of IT & Information Systems","applied":"2026-05-02","stage":"Rejected","hmContact":"","notes":"Rejected 5/6"},
+  {"id":24,"company":"LCRA","role":"Director, Corporate Data & Network Infrastructure","applied":"2026-05-02","stage":"Rejected","hmContact":"","notes":"Austin, TX · Rejected 5/4"},
+  {"id":25,"company":"Dynamic Systems","role":"Technology Service Operations Manager","applied":"2026-05-02","stage":"Applied","hmContact":"","notes":"Buda, TX"},
+  {"id":26,"company":"AWS","role":"Sr. Manager, Networking & Operations Network Engineering","applied":"2026-05-02","stage":"Rejected","hmContact":"","notes":"Rejected 5/8"},
+  {"id":27,"company":"Serco","role":"Manager, Data Analytics","applied":"2026-05-02","stage":"Applied","hmContact":"","notes":"Boise, ID"},
+  {"id":28,"company":"DR Horton","role":"Director of IT","applied":"2026-05-03","stage":"Applied","hmContact":"","notes":"Dallas, TX"},
+  {"id":29,"company":"Backstory","role":"Director of IT","applied":"2026-05-04","stage":"Applied","hmContact":"","notes":"Remote"},
+  {"id":30,"company":"Glazer's","role":"IT Director, Enterprise Solutions","applied":"2026-05-04","stage":"Applied","hmContact":"","notes":"Dallas, TX"},
+  {"id":31,"company":"Texas Health & Human Services","role":"Director of IT Service Delivery","applied":"2026-05-04","stage":"Applied","hmContact":"","notes":"Austin, TX"},
+  {"id":32,"company":"Ben E. Keith","role":"Sr. Manager, Digital Workplace","applied":"2026-05-05","stage":"Applied","hmContact":"","notes":"Fort Worth, TX"},
+  {"id":33,"company":"True North Consultants (Client TBD)","role":"Regional Infrastructure Manager, Americas","applied":"2026-05-05","stage":"HM Outreach","hmContact":"","notes":"DFW Metroplex"},
+  {"id":34,"company":"Sunrun","role":"Supervisor, Systems & Network Operations","applied":"2026-05-05","stage":"Rejected","hmContact":"","notes":"Rejected 5/7"},
+  {"id":35,"company":"Coldstream Wealth Management","role":"Director of IT","applied":"2026-05-05","stage":"Applied","hmContact":"","notes":"Bellevue, WA · Hybrid · Boise office"},
+  {"id":36,"company":"Aircall","role":"Senior Manager of IT Operations","applied":"2026-05-05","stage":"Rejected","hmContact":"","notes":"Position filled"},
+  {"id":37,"company":"Olivier James","role":"Director of IT Operations","applied":"2026-05-05","stage":"Applied","hmContact":"","notes":"Dallas, TX"},
+  {"id":38,"company":"American Airlines","role":"Manager of IT Engineering","applied":"2026-05-05","stage":"Applied","hmContact":"","notes":"Fort Worth, TX"},
+  {"id":39,"company":"Brown & Brown","role":"Sr. Director, Technology Solutions Shared Services","applied":"2026-05-05","stage":"Applied","hmContact":"","notes":"Remote · Plano, TX"},
+  {"id":40,"company":"Harnham","role":"Global Network Director","applied":"2026-05-05","stage":"Applied","hmContact":"","notes":"Dallas, TX"},
+  {"id":41,"company":"Texas Health Action","role":"VP of Health Information & Technology","applied":"2026-04-01","stage":"Rejected","hmContact":"","notes":"Pre-tracker · Rejected"},
+  {"id":42,"company":"InNet","role":"Account Executive, Sr. IT Solutions & Info Security","applied":"2026-05-05","stage":"Applied","hmContact":"","notes":"Austin, TX"},
+  {"id":43,"company":"Arcis Golf","role":"Director of IT","applied":"2026-05-05","stage":"Applied","hmContact":"","notes":"Dallas, TX"},
+  {"id":44,"company":"PAX Technology","role":"IT Director","applied":"2026-05-06","stage":"Rejected","hmContact":"","notes":"Rejected 5/8"},
+  {"id":45,"company":"CLEARResult","role":"Technology Operations Manager","applied":"2026-05-06","stage":"Applied","hmContact":"","notes":"Austin, TX"},
+  {"id":46,"company":"Net2Source (N2S)","role":"Director of Infrastructure & Network Architecture","applied":"2026-05-06","stage":"Applied","hmContact":"","notes":"Dallas, TX · Remote"},
+  {"id":47,"company":"Veterans Benefits Guide","role":"(Unknown)","applied":"2026-04-15","stage":"Rejected","hmContact":"","notes":"Pre-tracker · Position filled"},
+  {"id":48,"company":"ShipMonk","role":"VP of Information Technology","applied":"2026-05-07","stage":"Rejected","hmContact":"","notes":"Fort Worth, TX · Rejected"},
+  {"id":49,"company":"Child Care Group","role":"VP of Technology","applied":"2026-05-07","stage":"Applied","hmContact":"","notes":"Dallas, TX · VP level"},
+  {"id":50,"company":"Carestream Dental","role":"Sr. Director, Global Business Systems","applied":"2026-05-07","stage":"Applied","hmContact":"","notes":"$175-200K · Global scope · Salesforce/ERP"},
+  {"id":51,"company":"Principle Auto Group","role":"Director of IT","applied":"2026-05-07","stage":"Applied","hmContact":"","notes":"San Antonio, TX"},
+  {"id":52,"company":"Embrey","role":"IT Infrastructure Manager","applied":"2026-05-08","stage":"Applied","hmContact":"","notes":"San Antonio, TX · Real estate"},
+  {"id":53,"company":"Liberty Mutual","role":"VP & Sr. Director, Technology","applied":"2026-05-08","stage":"Applied","hmContact":"","notes":"Boston, MA · Likely remote · VP level"},
+  {"id":54,"company":"Arrowhead Engineering Products","role":"Warehouse Systems Manager","applied":"2026-05-08","stage":"Applied","hmContact":"","notes":"Boise, ID"},
+  {"id":55,"company":"OSI Vision","role":"Sr. Director, IT Infrastructure & Managed Services","applied":"2026-05-08","stage":"Applied","hmContact":"","notes":"San Antonio, TX · Commercial & federal · Exec team"},
+  {"id":56,"company":"Mirantis","role":"Technical Service Delivery Manager","applied":"2026-05-10","stage":"Applied","hmContact":"","notes":"Austin, TX · Cloud/Kubernetes"},
+  {"id":57,"company":"3M","role":"Sr. Manager, IT Asset Management","applied":"2026-05-10","stage":"Applied","hmContact":"","notes":"Austin, TX · Fortune 500"},
+  {"id":58,"company":"Vanta","role":"Sr. Director, Corporate Engineering","applied":"2026-05-10","stage":"Rejected","hmContact":"","notes":"Rejected"},
+  {"id":59,"company":"SHI","role":"Manager, Enterprise Cloud Infrastructure Services","applied":"2026-05-11","stage":"Applied","hmContact":"","notes":"Austin, TX"},
+  {"id":60,"company":"Chobani","role":"Network Infrastructure Project Coordinator","applied":"2026-05-12","stage":"Phone Screen","hmContact":"Mario Echeverria","notes":"Twin Falls, ID · Contract $80/hr W2 · OT/food manufacturing"},
+  {"id":61,"company":"Aldridge","role":"Technical Director","applied":"2026-05-12","stage":"Rejected","hmContact":"","notes":"Rejected"},
+  {"id":62,"company":"Bob Moore Motor Group","role":"Director of IT","applied":"2026-05-12","stage":"Applied","hmContact":"","notes":"Oklahoma City, OK"},
+  {"id":63,"company":"Legent Health","role":"Senior VP of Technology","applied":"2026-05-13","stage":"Applied","hmContact":"","notes":"Dallas, TX · SVP level"},
+  {"id":64,"company":"Amazon (Eero)","role":"Support Engineering Manager, CX Engineering","applied":"2026-05-13","stage":"Rejected","hmContact":"","notes":"Boise, ID · Rejected"},
+  {"id":65,"company":"Sycomp","role":"Global Account Executive","applied":"2026-05-13","stage":"Applied","hmContact":"","notes":"Remote"},
+  {"id":66,"company":"Enovis","role":"Sr. Director, Infrastructure","applied":"2026-05-14","stage":"Applied","hmContact":"","notes":"Dallas, TX · Medical device"},
+  {"id":67,"company":"Qarbon Aerospace","role":"IT Service Delivery Manager","applied":"2026-05-14","stage":"Applied","hmContact":"","notes":"Red Oak, TX · Aerospace"},
+  {"id":68,"company":"MapleTree U.S.","role":"VP of IS&T","applied":"2026-05-14","stage":"Applied","hmContact":"","notes":"Dallas, TX · VP level"},
+  {"id":69,"company":"SailPoint","role":"IT Infrastructure & Data Center Manager","applied":"2026-05-14","stage":"Applied","hmContact":"","notes":"Austin, TX · Identity security"},
+  {"id":70,"company":"Roku","role":"Tech Ops Manager","applied":"2026-05-14","stage":"Applied","hmContact":"","notes":"Austin, TX"},
+  {"id":71,"company":"Kasasa","role":"IT Security Manager","applied":"2026-05-14","stage":"Applied","hmContact":"","notes":"Austin, TX · Fintech"},
+  {"id":72,"company":"Addison Group","role":"Senior IT Manager","applied":"2026-05-14","stage":"Applied","hmContact":"","notes":"Austin, TX"},
+  {"id":73,"company":"Addison Group","role":"VP IT Infrastructure","applied":"2026-05-14","stage":"Applied","hmContact":"","notes":"Phoenix, AZ · VP level"},
+  {"id":74,"company":"Universal Diagnostics","role":"Director of IT","applied":"2026-05-15","stage":"Rejected","hmContact":"","notes":"Dallas, TX"},
+  {"id":75,"company":"Argus IT Services","role":"Manager of IT Operations & Service Delivery","applied":"2026-05-15","stage":"Applied","hmContact":"","notes":"Fort Worth, TX"},
+  {"id":76,"company":"Future Secure AI","role":"Head of IT","applied":"2026-05-15","stage":"Applied","hmContact":"","notes":"Austin, TX"},
+  {"id":77,"company":"University of Texas","role":"Director of IT Architecture & Delivery","applied":"2026-05-15","stage":"Applied","hmContact":"","notes":"Austin, TX"},
+  {"id":78,"company":"Harvey","role":"Director of Corporate Systems","applied":"2026-05-16","stage":"Applied","hmContact":"","notes":"Dallas, TX"},
+  {"id":79,"company":"Legent Health","role":"Senior Vice President","applied":"2026-05-17","stage":"Applied","hmContact":"","notes":"Plano, TX · SVP level"},
+  {"id":80,"company":"Riot Platforms","role":"VP of Information Technology","applied":"2026-05-17","stage":"Applied","hmContact":"","notes":"Austin, TX · $220-250K · VP level"},
+  {"id":81,"company":"Alpine Solutions Group","role":"Senior IT Director, Transport Solutions","applied":"2026-05-19","stage":"Applied","hmContact":"","notes":"Remote · Transport/logistics"},
+  {"id":82,"company":"Harvey Hohauser & Associates","role":"VP of Technology","applied":"2026-05-19","stage":"Applied","hmContact":"","notes":"Dallas, TX · VP level"},
+  {"id":83,"company":"LBMC Staffing Solutions","role":"Director of Information Technology","applied":"2026-05-19","stage":"Applied","hmContact":"","notes":"Remote"},
+  {"id":84,"company":"Convey Health Solutions","role":"Director of IT Infrastructure","applied":"2026-05-19","stage":"Applied","hmContact":"","notes":"Remote · Healthcare tech"},
+  {"id":85,"company":"Amazon","role":"IT Manager, Ops Tech Solutions","applied":"2026-05-19","stage":"Applied","hmContact":"","notes":"San Antonio, TX"},
+  {"id":86,"company":"Clearwater Analytics","role":"Senior Service Delivery Manager","applied":"2026-05-19","stage":"Applied","hmContact":"","notes":"Boise, ID · Fintech"},
+  {"id":87,"company":"McKesson","role":"Technology Operations Manager","applied":"2026-05-19","stage":"Applied","hmContact":"","notes":"Dallas, TX · Fortune 10"},
+  {"id":88,"company":"Sports Car Club of America","role":"Director of IT","applied":"2026-05-19","stage":"Applied","hmContact":"","notes":"Remote"},
+  {"id":89,"company":"Langham Hall","role":"Group IT Manager","applied":"2026-05-19","stage":"Applied","hmContact":"","notes":"Remote · Financial services"},
+  {"id":90,"company":"Pennant Services","role":"VP of IT Infrastructure","applied":"2026-05-19","stage":"Applied","hmContact":"","notes":"Eagle, ID · VP level · Local"},
+  {"id":91,"company":"Compunet (Phoenix)","role":"Account Executive","applied":"2026-05-20","stage":"Applied","hmContact":"","notes":"Phoenix, AZ"},
+  {"id":92,"company":"PC Recruiting HR","role":"IT Manager","applied":"2026-05-24","stage":"Applied","hmContact":"","notes":"Boise, ID"}
+];
+
+const STAGES = ["Applied","HM Outreach","Phone Screen","Interview","Final Round","Offer","Rejected","Withdrawn"];
+
+// ── State ────────────────────────────────────────────────────────────────────
+let data = [];
+let filtered = [];
+let currentView = 'table';
+let currentPage = 1;
+const PAGE_SIZE = 25;
+let nextId = 100;
+let storageOK = false;
+
+function checkStorage() {
+  try {
+    const key = '__storage_test__';
+    localStorage.setItem(key, '1');
+    localStorage.removeItem(key);
+    return true;
+  } catch { return false; }
+}
+
+function load() {
+  storageOK = checkStorage();
+  if (!storageOK) {
+    // localStorage blocked (common on iPadOS file:// in some Safari configs)
+    data = [...INITIAL_DATA];
+    // Show banner after DOM is ready
+    setTimeout(() => document.getElementById('storageBanner').classList.add('show'), 0);
+    return;
+  }
+  try {
+    const saved = localStorage.getItem('it-pipeline-data');
+    if (saved) {
+      data = JSON.parse(saved);
+      nextId = Math.max(...data.map(d => d.id), 0) + 1;
+    } else {
+      data = [...INITIAL_DATA];
+    }
+  } catch {
+    data = [...INITIAL_DATA];
+  }
+}
+
+function save() {
+  if (!storageOK) return;   // silently skip — banner already tells user to export
+  try {
+    localStorage.setItem('it-pipeline-data', JSON.stringify(data));
+  } catch {
+    // Storage full or revoked mid-session — show banner
+    storageOK = false;
+    document.getElementById('storageBanner').classList.add('show');
+  }
+}
+
+// ── Filtering & Sorting ──────────────────────────────────────────────────────
+function applyFilters() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const stage = document.getElementById('stageFilter').value;
+  const sort = document.getElementById('sortField').value;
+
+  filtered = data.filter(row => {
+    const matchQ = !q || [row.company, row.role, row.notes, row.hmContact]
+      .some(f => (f||'').toLowerCase().includes(q));
+    const matchStage = !stage || row.stage === stage;
+    return matchQ && matchStage;
+  });
+
+  const [field, dir] = sort.split('-');
+  filtered.sort((a, b) => {
+    let va = (field === 'stage') ? STAGES.indexOf(a.stage) : (a[field]||'');
+    let vb = (field === 'stage') ? STAGES.indexOf(b.stage) : (b[field]||'');
+    if (va < vb) return dir === 'asc' ? -1 : 1;
+    if (va > vb) return dir === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  currentPage = 1;
+  renderStats();
+  render();
+}
+
+// ── Stats ────────────────────────────────────────────────────────────────────
+function renderStats() {
+  const total = data.length;
+  const active = data.filter(d => !['Rejected','Withdrawn'].includes(d.stage)).length;
+  const advanced = data.filter(d => ['Phone Screen','Interview','Final Round','Offer'].includes(d.stage)).length;
+  const rejected = data.filter(d => d.stage === 'Rejected').length;
+  const responseRate = total > 0 ? Math.round((total - data.filter(d=>d.stage==='Applied').length) / total * 100) : 0;
+
+  document.getElementById('statsBar').innerHTML = `
+    <div class="stat-item">
+      <div class="stat-value">${total}</div>
+      <div class="stat-label">Total Applied</div>
+    </div>
+    <div class="stat-item green">
+      <div class="stat-value">${active}</div>
+      <div class="stat-label">Active</div>
+    </div>
+    <div class="stat-item purple">
+      <div class="stat-value">${advanced}</div>
+      <div class="stat-label">Advanced</div>
+    </div>
+    <div class="stat-item red">
+      <div class="stat-value">${rejected}</div>
+      <div class="stat-label">Rejected</div>
+    </div>
+    <div class="stat-item amber">
+      <div class="stat-value">${responseRate}%</div>
+      <div class="stat-label">Response Rate</div>
+    </div>
+  `;
+}
+
+// ── Render ───────────────────────────────────────────────────────────────────
+function render() {
+  if (currentView === 'table') renderTable();
+  else renderKanban();
+}
+
+function stageBadge(stage) {
+  const cls = 'stage-' + stage.replace(/ /g, '-');
+  return `<span class="stage-badge ${cls}"><span class="stage-dot"></span>${stage}</span>`;
+}
+
+function fmtDate(d) {
+  if (!d) return '';
+  const iso = d.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) {
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${months[+iso[2]-1]} ${+iso[3]}`;
+  }
+  return d;
+}
+
+function renderTable() {
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const page = filtered.slice(start, start + PAGE_SIZE);
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+
+  if (filtered.length === 0) {
+    document.getElementById('tableView').innerHTML = `
+      <div class="table-wrap">
+        <div class="empty-state">
+          <div class="empty-state-icon">🔍</div>
+          <h3>No applications found</h3>
+          <p>Try adjusting your filters or add a new application.</p>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const rows = page.map(row => `
+    <tr>
+      <td class="td-num">${row.id}</td>
+      <td class="td-company">${esc(row.company)}</td>
+      <td class="td-role">${esc(row.role)}</td>
+      <td class="td-date">${fmtDate(row.applied)}</td>
+      <td>${stageBadge(row.stage)}</td>
+      <td class="td-contact">${esc(row.hmContact)}</td>
+      <td class="td-notes">${esc(row.notes)}</td>
+      <td class="td-actions">
+        <button class="icon-btn" onclick="openModal(${row.id})" title="Edit">✏️</button>
+        <button class="icon-btn delete" onclick="deleteEntry(${row.id})" title="Delete">🗑</button>
+      </td>
+    </tr>`).join('');
+
+  let pagination = '';
+  if (totalPages > 1) {
+    const pages = [];
+    if (currentPage > 1) pages.push(`<button class="page-btn" onclick="goPage(${currentPage-1})">‹</button>`);
+    for (let i = 1; i <= totalPages; i++) {
+      if (i === 1 || i === totalPages || Math.abs(i - currentPage) <= 1)
+        pages.push(`<button class="page-btn ${i===currentPage?'active':''}" onclick="goPage(${i})">${i}</button>`);
+      else if (Math.abs(i - currentPage) === 2)
+        pages.push(`<span style="padding:4px 6px;color:var(--text3)">…</span>`);
+    }
+    if (currentPage < totalPages) pages.push(`<button class="page-btn" onclick="goPage(${currentPage+1})">›</button>`);
+    pagination = pages.join('');
+  }
+
+  document.getElementById('tableView').innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Company</th>
+            <th>Role</th>
+            <th>Applied</th>
+            <th>Stage</th>
+            <th>HM Contact</th>
+            <th>Notes</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div class="table-footer">
+        <span>Showing ${start+1}–${Math.min(start+PAGE_SIZE, filtered.length)} of ${filtered.length} applications</span>
+        <div class="pagination">${pagination}</div>
+      </div>
+    </div>`;
+}
+
+function renderKanban() {
+  const cols = STAGES.map(stage => {
+    const cards = filtered.filter(r => r.stage === stage);
+    const cls = 'col-' + stage;
+    const cardHTML = cards.map(row => `
+      <div class="kanban-card" onclick="openModal(${row.id})">
+        <div class="kanban-card-company">${esc(row.company)}</div>
+        <div class="kanban-card-role">${esc(row.role)}</div>
+        <div class="kanban-card-date">Applied ${fmtDate(row.applied)}</div>
+        ${row.hmContact ? `<div class="kanban-card-contact">👤 ${esc(row.hmContact)}</div>` : ''}
+        ${row.notes ? `<div class="kanban-card-notes">${esc(row.notes)}</div>` : ''}
+      </div>`).join('');
+
+    return `
+      <div class="kanban-col">
+        <div class="kanban-col-header ${cls}">
+          <span>${stage}</span>
+          <span class="kanban-count">${cards.length}</span>
+        </div>
+        <div class="kanban-cards">
+          ${cardHTML || `<div style="padding:12px;color:var(--text3);font-size:12px;text-align:center">—</div>`}
+        </div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('kanbanView').innerHTML = `<div class="kanban-board">${cols}</div>`;
+}
+
+function goPage(p) { currentPage = p; render(); window.scrollTo(0, 0); }
+
+function setView(v) {
+  currentView = v;
+  document.getElementById('tableView').style.display = v === 'table' ? '' : 'none';
+  document.getElementById('kanbanView').style.display = v === 'kanban' ? '' : 'none';
+  document.getElementById('btnTable').classList.toggle('active', v === 'table');
+  document.getElementById('btnKanban').classList.toggle('active', v === 'kanban');
+  render();
+}
+
+// ── Modal ────────────────────────────────────────────────────────────────────
+function openModal(id) {
+  document.getElementById('modalTitle').textContent = id ? 'Edit Application' : 'Add Application';
+  document.getElementById('editId').value = id || '';
+  const today = new Date().toISOString().split('T')[0];
+
+  if (id) {
+    const row = data.find(d => d.id === id);
+    if (!row) return;
+    document.getElementById('fCompany').value = row.company;
+    document.getElementById('fRole').value = row.role;
+    document.getElementById('fApplied').value = row.applied && row.applied.match(/^\d{4}-\d{2}-\d{2}/) ? row.applied.slice(0,10) : today;
+    document.getElementById('fStage').value = row.stage;
+    document.getElementById('fContact').value = row.hmContact;
+    document.getElementById('fNotes').value = row.notes;
+  } else {
+    document.getElementById('fCompany').value = '';
+    document.getElementById('fRole').value = '';
+    document.getElementById('fApplied').value = today;
+    document.getElementById('fStage').value = 'Applied';
+    document.getElementById('fContact').value = '';
+    document.getElementById('fNotes').value = '';
+  }
+  document.getElementById('modalOverlay').classList.add('open');
+  document.getElementById('fCompany').focus();
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+}
+
+function saveEntry() {
+  const company = document.getElementById('fCompany').value.trim();
+  const role = document.getElementById('fRole').value.trim();
+  if (!company) { document.getElementById('fCompany').focus(); return; }
+
+  const id = document.getElementById('editId').value;
+  const entry = {
+    id: id ? +id : nextId++,
+    company,
+    role,
+    applied: document.getElementById('fApplied').value || new Date().toISOString().split('T')[0],
+    stage: document.getElementById('fStage').value,
+    hmContact: document.getElementById('fContact').value.trim(),
+    notes: document.getElementById('fNotes').value.trim()
+  };
+
+  if (id) {
+    const idx = data.findIndex(d => d.id === +id);
+    data[idx] = entry;
+    toast('Application updated', 'green');
+  } else {
+    data.unshift(entry);
+    toast('Application added', 'green');
+  }
+
+  save();
+  closeModal();
+  applyFilters();
+}
+
+function deleteEntry(id) {
+  if (!confirm('Delete this application?')) return;
+  data = data.filter(d => d.id !== id);
+  save();
+  applyFilters();
+  toast('Deleted');
+}
+
+// ── Data Menu ────────────────────────────────────────────────────────────────
+function toggleDataMenu(e) {
+  e.stopPropagation();
+  document.getElementById('dataMenu').classList.toggle('open');
+}
+document.addEventListener('click', () => document.getElementById('dataMenu').classList.remove('open'));
+
+// ── Export ───────────────────────────────────────────────────────────────────
+function exportJSON() {
+  document.getElementById('dataMenu').classList.remove('open');
+  const json = JSON.stringify(data, null, 2);
+  const a = document.createElement('a');
+  a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(json);
+  a.download = 'it-pipeline-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  toast('Exported ' + data.length + ' applications as JSON', 'green');
+}
+
+function exportCSV() {
+  document.getElementById('dataMenu').classList.remove('open');
+  const headers = ['#','Company','Role','Applied','Stage','HM Contact','Notes'];
+  const rows = data.map(r =>
+    [r.id, r.company, r.role, r.applied, r.stage, r.hmContact, r.notes]
+      .map(v => `"${(v||'').replace(/"/g,'""')}"`)
+      .join(',')
+  );
+  const csv = [headers.join(','), ...rows].join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'it-pipeline-' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+  toast('Exported ' + data.length + ' rows as CSV');
+}
+
+// ── Import ───────────────────────────────────────────────────────────────────
+let pendingImport = null;
+let importMode = 'replace';
+
+function triggerImport() {
+  document.getElementById('dataMenu').classList.remove('open');
+  document.getElementById('importInput').value = '';
+  document.getElementById('importInput').click();
+}
+
+function handleImport(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      if (!Array.isArray(parsed)) throw new Error('Not an array');
+      pendingImport = parsed;
+      const newCount = parsed.filter(r => !data.find(d => d.id === r.id)).length;
+      const updateCount = parsed.filter(r => data.find(d => d.id === r.id)).length;
+      document.getElementById('importSummary').innerHTML =
+        `<strong>${parsed.length} applications</strong> found in the file &nbsp;·&nbsp; ` +
+        `you currently have <strong>${data.length}</strong>.<br>` +
+        `<span style="color:var(--text3);font-size:12px;margin-top:4px;display:block">` +
+        `${newCount} new entries &nbsp;·&nbsp; ${updateCount} existing entries</span>`;
+      selectImportMode('replace');
+      document.getElementById('importOverlay').classList.add('open');
+    } catch {
+      toast('Could not read file — make sure it\'s a JSON export from this app');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function selectImportMode(mode) {
+  importMode = mode;
+  document.getElementById('optReplace').classList.toggle('selected', mode === 'replace');
+  document.getElementById('optMerge').classList.toggle('selected', mode === 'merge');
+}
+
+function confirmImport() {
+  if (!pendingImport) return;
+  if (importMode === 'replace') {
+    data = pendingImport;
+  } else {
+    const existingIds = new Set(data.map(d => d.id));
+    const newEntries = pendingImport.filter(r => !existingIds.has(r.id));
+    data = [...data, ...newEntries];
+  }
+  nextId = Math.max(...data.map(d => d.id), 0) + 1;
+  save();
+  closeImportModal();
+  applyFilters();
+  const verb = importMode === 'replace' ? 'Replaced with' : 'Merged —';
+  toast(`${verb} ${data.length} applications loaded`, 'green');
+  pendingImport = null;
+}
+
+function closeImportModal() {
+  document.getElementById('importOverlay').classList.remove('open');
+}
+
+function handleImportOverlayClick(e) {
+  if (e.target === document.getElementById('importOverlay')) closeImportModal();
+}
+
+// ── Utilities ────────────────────────────────────────────────────────────────
+function esc(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+let toastTimer;
+function toast(msg, type) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (type === 'green' ? ' green' : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// Keyboard shortcut: Escape to close modal
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeModal(); closeImportModal(); }
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+    if (document.getElementById('modalOverlay').classList.contains('open')) saveEntry();
+    if (document.getElementById('importOverlay').classList.contains('open')) confirmImport();
+  }
+});
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+load();
+applyFilters();
+</script>
+</body>
+</html>
