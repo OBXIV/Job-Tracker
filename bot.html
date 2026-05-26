@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Quick Add — Job Pipeline Bot</title>
+<title>Quick Add Bot — Job Pipeline</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:#f4f6f9;color:#1e293b;font-size:14px;min-height:100vh;display:flex;flex-direction:column}
@@ -16,10 +16,12 @@ header h1{font-size:16px;font-weight:600}
 main{flex:1;padding:32px 24px;max-width:640px;width:100%;margin:0 auto}
 .page-title{font-size:20px;font-weight:700;margin-bottom:4px}
 .page-sub{color:#64748b;font-size:13px;margin-bottom:24px}
+
 .card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;margin-bottom:16px;overflow:hidden}
 .card-head{padding:13px 18px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;gap:10px}
 .ch-icon{width:28px;height:28px;border-radius:7px;display:grid;place-items:center;font-size:14px;flex-shrink:0}
 .blue-icon{background:#eff6ff}
+.orange-icon{background:#fff7ed}
 .ch-text{flex:1}
 .ch-title{font-size:13px;font-weight:600}
 .ch-sub{font-size:11px;color:#64748b;margin-top:1px}
@@ -28,8 +30,12 @@ main{flex:1;padding:32px 24px;max-width:640px;width:100%;margin:0 auto}
 .db-dot.ok{background:#10b981}
 .db-dot.err{background:#ef4444}
 .card-body{padding:18px}
-.prefill-banner{background:#eff6ff;border:1px solid #bfdbfe;border-radius:9px;padding:10px 14px;font-size:13px;color:#1d4ed8;margin-bottom:16px;display:none;align-items:center;gap:8px}
-.prefill-banner.show{display:flex}
+
+.banner{border-radius:9px;padding:10px 14px;font-size:13px;margin-bottom:16px;display:none;align-items:center;gap:8px}
+.banner.show{display:flex}
+.banner.add{background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8}
+.banner.update{background:#fff7ed;border:1px solid #fed7aa;color:#c2410c}
+
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
 .fg{display:flex;flex-direction:column;gap:5px}
 .fg.full{grid-column:1/-1}
@@ -37,25 +43,38 @@ main{flex:1;padding:32px 24px;max-width:640px;width:100%;margin:0 auto}
 .fg input,.fg select,.fg textarea{padding:9px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;font-family:inherit;color:#1e293b;background:#fff;outline:none;transition:border-color .15s,box-shadow .15s;width:100%}
 .fg input:focus,.fg select:focus,.fg textarea:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
 .fg textarea{resize:vertical;min-height:72px;line-height:1.55}
+.fg input:disabled,.fg select:disabled,.fg textarea:disabled{background:#f8fafc;color:#94a3b8;cursor:not-allowed}
+
 .submit-row{display:flex;align-items:center;gap:10px;margin-top:18px;flex-wrap:wrap}
 button{padding:8px 16px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;font-size:13px;font-family:inherit;font-weight:500;cursor:pointer;transition:all .15s;color:#1e293b;display:inline-flex;align-items:center;gap:6px}
 button:hover{background:#f8fafc}
 button:disabled{opacity:.5;cursor:not-allowed}
-.btn-submit{background:#3b82f6;color:#fff;border-color:#3b82f6;padding:10px 24px;font-size:14px}
-.btn-submit:hover{background:#2563eb;border-color:#2563eb}
+.btn-add{background:#3b82f6;color:#fff;border-color:#3b82f6;padding:10px 24px;font-size:14px}
+.btn-add:hover{background:#2563eb;border-color:#2563eb}
+.btn-update{background:#f97316;color:#fff;border-color:#f97316;padding:10px 24px;font-size:14px}
+.btn-update:hover{background:#ea580c;border-color:#ea580c}
+
 .result{margin-top:14px;padding:11px 14px;border-radius:9px;font-size:13px;display:none;align-items:center;gap:8px}
 .result.show{display:flex}
 .result.ok{background:#ecfdf5;border:1px solid #6ee7b7;color:#064e3b}
 .result.err{background:#fef2f2;border:1px solid #fca5a5;color:#7f1d1d}
+
 .spin{display:inline-block;width:13px;height:13px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .65s linear infinite;flex-shrink:0}
 @keyframes spin{to{transform:rotate(360deg)}}
+
 .instructions{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:18px}
-.instructions h3{font-size:13px;font-weight:600;margin-bottom:10px;color:#1e293b}
+.instructions h3{font-size:13px;font-weight:600;margin-bottom:10px}
 .step{display:flex;gap:12px;padding:8px 0;border-bottom:1px solid #f1f5f9}
-.step:last-child{border-bottom:none}
+.step:last-child{border-bottom:none;padding-bottom:0}
 .step-num{width:22px;height:22px;background:#3b82f6;color:#fff;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px}
 .step-text{font-size:13px;color:#475569;line-height:1.5}
 .step-text strong{color:#1e293b}
+
+/* Stage badge colors */
+.stage-Applied{color:#3b82f6}.stage-HM-Outreach{color:#8b5cf6}.stage-Phone-Screen{color:#b45309}
+.stage-Interview{color:#c2410c}.stage-Final-Round{color:#b91c1c}.stage-Offer{color:#047857}
+.stage-Rejected{color:#6b7280}.stage-Withdrawn{color:#94a3b8}
+
 @media(max-width:480px){.form-grid{grid-template-columns:1fr}.fg.full{grid-column:1}}
 </style>
 </head>
@@ -69,20 +88,20 @@ button:disabled{opacity:.5;cursor:not-allowed}
 </header>
 
 <main>
-  <div class="page-title">Add Application</div>
-  <p class="page-sub">Fields auto-fill when opened via a Claude-generated link, or enter manually.</p>
+  <div class="page-title" id="pageTitle">Add Application</div>
+  <p class="page-sub" id="pageSub">Fields auto-fill when opened via a Claude-generated link, or enter manually.</p>
 
   <div class="card">
     <div class="card-head">
-      <div class="ch-icon blue-icon">📋</div>
+      <div class="ch-icon" id="cardIcon">📋</div>
       <div class="ch-text">
-        <div class="ch-title">Application details</div>
-        <div class="ch-sub">Review and confirm before saving</div>
+        <div class="ch-title" id="cardTitle">Application details</div>
+        <div class="ch-sub" id="cardSub">Review and confirm before saving</div>
       </div>
       <div class="db-pill"><div class="db-dot" id="dbDot"></div><span id="dbLabel">Connecting…</span></div>
     </div>
     <div class="card-body">
-      <div class="prefill-banner" id="prefillBanner">✨ Pre-filled from Claude — review and save</div>
+      <div class="banner" id="banner"></div>
       <div class="form-grid">
         <div class="fg full"><label for="fCompany">Company *</label><input type="text" id="fCompany" placeholder="e.g. Acme Corp" /></div>
         <div class="fg full"><label for="fRole">Role / Title</label><input type="text" id="fRole" placeholder="e.g. Director of IT" /></div>
@@ -99,42 +118,73 @@ button:disabled{opacity:.5;cursor:not-allowed}
         <div class="fg full"><label for="fNotes">Notes</label><textarea id="fNotes" placeholder="Location, salary, source, anything else…"></textarea></div>
       </div>
       <div class="submit-row">
-        <button class="btn-submit" id="submitBtn" onclick="submitEntry()">＋ Add to Pipeline</button>
+        <button class="btn-add" id="submitBtn" onclick="submitEntry()">＋ Add to Pipeline</button>
         <button onclick="clearForm()">Clear</button>
       </div>
       <div class="result" id="result"></div>
     </div>
   </div>
 
-  <div class="instructions">
+  <div class="instructions" id="instructions">
     <h3>How to use with Claude</h3>
-    <div class="step"><div class="step-num">1</div><div class="step-text">Paste a job posting into <strong>Claude (claude.ai)</strong></div></div>
+    <div class="step"><div class="step-num">1</div><div class="step-text">Paste a job posting or status update into <strong>Claude (claude.ai)</strong></div></div>
     <div class="step"><div class="step-num">2</div><div class="step-text">Claude parses it and gives you a <strong>pre-filled link</strong> to this page</div></div>
-    <div class="step"><div class="step-num">3</div><div class="step-text">Click the link — fields auto-fill — hit <strong>Add to Pipeline</strong></div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-text">Click the link — review fields — hit <strong>Add</strong> or <strong>Update</strong></div></div>
   </div>
 </main>
 
-<div id="toast" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(10px);background:#1e293b;color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:500;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:999;white-space:nowrap"></div>
-
 <script>
 const DB = 'https://job-tracker-f6ed5-default-rtdb.firebaseio.com/pipeline.json';
+let mode = 'add'; // 'add' or 'update'
+let updateId = null;
 
-// ── Read URL params and pre-fill ──────────────────────────────────────────────
+// ── Load URL params ───────────────────────────────────────────────────────────
 function loadFromParams() {
   const p = new URLSearchParams(window.location.search);
-  const map = {company:'fCompany',role:'fRole',applied:'fApplied',stage:'fStage',contact:'fContact',notes:'fNotes'};
+  updateId = p.get('id') ? parseInt(p.get('id')) : null;
+  mode = updateId ? 'update' : 'add';
+
+  const map = {company:'fCompany', role:'fRole', applied:'fApplied', stage:'fStage', contact:'fContact', notes:'fNotes'};
   let filled = false;
   Object.entries(map).forEach(([param, id]) => {
     const val = p.get(param);
-    if (val) {
-      document.getElementById(id).value = val;
-      filled = true;
-    }
+    if (val) { document.getElementById(id).value = val; filled = true; }
   });
-  if (filled) document.getElementById('prefillBanner').classList.add('show');
+
+  if (mode === 'update') {
+    // Update mode UI
+    document.getElementById('pageTitle').textContent = 'Update Application';
+    document.getElementById('pageSub').textContent = 'Review the changes Claude detected, then confirm.';
+    document.getElementById('cardIcon').textContent = '✏️';
+    document.getElementById('cardIcon').className = 'ch-icon orange-icon';
+    document.getElementById('cardTitle').textContent = 'Update details';
+    document.getElementById('cardSub').textContent = 'Only changed fields will be updated — others stay as-is';
+    document.getElementById('submitBtn').textContent = '✓ Update Pipeline';
+    document.getElementById('submitBtn').className = 'btn-update';
+
+    // Lock fields that weren't passed in params (only update what Claude specified)
+    const passedFields = [];
+    Object.entries(map).forEach(([param, id]) => { if (p.get(param)) passedFields.push(id); });
+    ['fCompany','fRole','fApplied','fStage','fContact','fNotes'].forEach(id => {
+      if (!passedFields.includes(id)) {
+        document.getElementById(id).disabled = true;
+        document.getElementById(id).placeholder = '(unchanged)';
+      }
+    });
+
+    if (filled) {
+      const banner = document.getElementById('banner');
+      banner.className = 'banner show update';
+      banner.innerHTML = '✏️ Updating entry #' + updateId + ' — locked fields stay unchanged';
+    }
+  } else if (filled) {
+    const banner = document.getElementById('banner');
+    banner.className = 'banner show add';
+    banner.innerHTML = '✨ Pre-filled from Claude — review and save';
+  }
 }
 
-// ── Firebase connect check ────────────────────────────────────────────────────
+// ── Firebase connect ──────────────────────────────────────────────────────────
 async function initDb() {
   try {
     const r = await fetch(DB);
@@ -147,52 +197,87 @@ async function initDb() {
   }
 }
 
-// ── Submit ────────────────────────────────────────────────────────────────────
+// ── Submit (add or update) ────────────────────────────────────────────────────
 async function submitEntry() {
-  const company = document.getElementById('fCompany').value.trim();
-  if (!company) { document.getElementById('fCompany').focus(); return; }
   const btn = document.getElementById('submitBtn');
   const res = document.getElementById('result');
   btn.disabled = true;
   btn.innerHTML = '<div class="spin"></div> Saving…';
   res.className = 'result';
+
   try {
     const r = await fetch(DB);
     if (!r.ok) throw new Error('Read failed: HTTP ' + r.status);
-    const current = await r.json();
-    const arr = Array.isArray(current) ? current : [];
-    const maxId = arr.length ? Math.max(...arr.map(d => d.id||0)) : 999;
-    const entry = {
-      id: maxId + 1,
-      company,
-      role:      document.getElementById('fRole').value.trim(),
-      applied:   document.getElementById('fApplied').value || new Date().toISOString().split('T')[0],
-      stage:     document.getElementById('fStage').value,
-      hmContact: document.getElementById('fContact').value.trim(),
-      notes:     document.getElementById('fNotes').value.trim()
-    };
-    arr.unshift(entry);
-    const w = await fetch(DB, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(arr)});
-    if (!w.ok) throw new Error('Write failed: HTTP ' + w.status);
-    res.className = 'result show ok';
-    res.innerHTML = '✓ Added <strong>' + entry.company + '</strong>' + (entry.role ? ' — ' + entry.role : '') + ' · ID #' + entry.id;
-    clearForm(true);
-    // Clear URL params so a refresh doesn't re-fill
-    window.history.replaceState({}, '', window.location.pathname);
+    const arr = await r.json();
+    if (!Array.isArray(arr)) throw new Error('Unexpected data format');
+
+    if (mode === 'update') {
+      // Find the entry by ID and merge only the enabled (changed) fields
+      const idx = arr.findIndex(d => d.id === updateId);
+      if (idx === -1) throw new Error('Entry #' + updateId + ' not found in pipeline');
+
+      const p = new URLSearchParams(window.location.search);
+      const fieldMap = {company:'fCompany', role:'fRole', applied:'fApplied', stage:'fStage', contact:'fContact', notes:'fNotes'};
+      const dbMap = {company:'company', role:'role', applied:'applied', stage:'stage', contact:'hmContact', notes:'notes'};
+
+      Object.entries(fieldMap).forEach(([param, elId]) => {
+        if (p.get(param)) { // only update fields Claude specified
+          arr[idx][dbMap[param]] = document.getElementById(elId).value.trim();
+        }
+      });
+
+      const w = await fetch(DB, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(arr)});
+      if (!w.ok) throw new Error('Write failed: HTTP ' + w.status);
+
+      res.className = 'result show ok';
+      res.innerHTML = '✓ Updated <strong>' + arr[idx].company + '</strong> → ' + arr[idx].stage;
+
+    } else {
+      // Add mode
+      const company = document.getElementById('fCompany').value.trim();
+      if (!company) { document.getElementById('fCompany').focus(); btn.disabled = false; btn.innerHTML = '＋ Add to Pipeline'; return; }
+
+      const maxId = arr.length ? Math.max(...arr.map(d => d.id||0)) : 999;
+      const entry = {
+        id: maxId + 1,
+        company,
+        role:      document.getElementById('fRole').value.trim(),
+        applied:   document.getElementById('fApplied').value || new Date().toISOString().split('T')[0],
+        stage:     document.getElementById('fStage').value,
+        hmContact: document.getElementById('fContact').value.trim(),
+        notes:     document.getElementById('fNotes').value.trim()
+      };
+      arr.unshift(entry);
+      const w = await fetch(DB, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(arr)});
+      if (!w.ok) throw new Error('Write failed: HTTP ' + w.status);
+
+      res.className = 'result show ok';
+      res.innerHTML = '✓ Added <strong>' + entry.company + '</strong>' + (entry.role ? ' — ' + entry.role : '') + ' · ID #' + entry.id;
+      clearForm(true);
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+
   } catch(e) {
     res.className = 'result show err';
-    res.innerHTML = '⚠ Save failed: ' + (e.message || 'unknown error');
+    res.innerHTML = '⚠ Failed: ' + (e.message || 'unknown error');
   } finally {
     btn.disabled = false;
-    btn.innerHTML = '＋ Add to Pipeline';
+    btn.innerHTML = mode === 'update' ? '✓ Update Pipeline' : '＋ Add to Pipeline';
   }
 }
 
 function clearForm(keepResult) {
-  ['fCompany','fRole','fContact','fNotes'].forEach(id => document.getElementById(id).value = '');
+  ['fCompany','fRole','fContact','fNotes'].forEach(id => {
+    const el = document.getElementById(id);
+    el.value = '';
+    el.disabled = false;
+    el.placeholder = '';
+  });
   document.getElementById('fApplied').value = new Date().toISOString().split('T')[0];
+  document.getElementById('fApplied').disabled = false;
   document.getElementById('fStage').value = 'Applied';
-  document.getElementById('prefillBanner').classList.remove('show');
+  document.getElementById('fStage').disabled = false;
+  document.getElementById('banner').className = 'banner';
   if (!keepResult) document.getElementById('result').className = 'result';
 }
 
@@ -200,7 +285,6 @@ document.addEventListener('keydown', e => {
   if ((e.metaKey||e.ctrlKey) && e.key === 'Enter') submitEntry();
 });
 
-// ── Init ──────────────────────────────────────────────────────────────────────
 document.getElementById('fApplied').value = new Date().toISOString().split('T')[0];
 loadFromParams();
 initDb();
