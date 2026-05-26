@@ -140,7 +140,7 @@ async function main() {
   console.table(entry);
 
   // ── 3. Append and write back ───────────────────────────────────────────────
-  pipeline.push(entry);
+  pipeline.unshift(entry);
 
   console.log(`\n💾  Writing ${pipeline.length} entries back to Firebase…`);
   try {
