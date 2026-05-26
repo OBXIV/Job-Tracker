@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>IT Pipeline Tracker</title>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -19,22 +22,14 @@
       --primary: #3b82f6;
       --primary-dark: #2563eb;
 
-      --applied: #3b82f6;
-      --applied-bg: #eff6ff;
-      --outreach: #8b5cf6;
-      --outreach-bg: #f5f3ff;
-      --phone: #f59e0b;
-      --phone-bg: #fffbeb;
-      --interview: #f97316;
-      --interview-bg: #fff7ed;
-      --final: #ef4444;
-      --final-bg: #fef2f2;
-      --offer: #10b981;
-      --offer-bg: #ecfdf5;
-      --rejected: #6b7280;
-      --rejected-bg: #f9fafb;
-      --withdrawn: #94a3b8;
-      --withdrawn-bg: #f8fafc;
+      --applied: #3b82f6;    --applied-bg: #eff6ff;
+      --outreach: #8b5cf6;   --outreach-bg: #f5f3ff;
+      --phone: #f59e0b;      --phone-bg: #fffbeb;
+      --interview: #f97316;  --interview-bg: #fff7ed;
+      --final: #ef4444;      --final-bg: #fef2f2;
+      --offer: #10b981;      --offer-bg: #ecfdf5;
+      --rejected: #6b7280;   --rejected-bg: #f9fafb;
+      --withdrawn: #94a3b8;  --withdrawn-bg: #f8fafc;
     }
 
     body {
@@ -45,26 +40,162 @@
       font-size: 14px;
     }
 
+    /* ── Setup Overlay ── */
+    .setup-overlay {
+      position: fixed; inset: 0;
+      background: var(--bg);
+      z-index: 500;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 24px;
+      overflow-y: auto;
+    }
+    .setup-overlay.hidden { display: none; }
+    .setup-card {
+      background: var(--surface);
+      border-radius: 20px;
+      padding: 36px;
+      max-width: 580px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0,0,0,.1);
+      margin-top: 40px;
+      margin-bottom: 40px;
+    }
+    .setup-logo {
+      width: 52px; height: 52px;
+      background: var(--primary);
+      border-radius: 14px;
+      display: grid; place-items: center;
+      font-size: 26px;
+      margin-bottom: 20px;
+    }
+    .setup-card h2 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+    .setup-desc { color: var(--text2); line-height: 1.6; margin-bottom: 28px; font-size: 14px; }
+    .setup-steps { display: flex; flex-direction: column; gap: 0; margin-bottom: 24px; }
+    .setup-step {
+      display: flex; gap: 16px;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .setup-step:last-child { border-bottom: none; }
+    .step-num {
+      width: 28px; height: 28px; flex-shrink: 0;
+      background: var(--primary); color: #fff;
+      border-radius: 50%;
+      display: grid; place-items: center;
+      font-size: 13px; font-weight: 700;
+      margin-top: 1px;
+    }
+    .step-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+    .step-desc { color: var(--text2); font-size: 13px; line-height: 1.55; }
+    .step-desc a { color: var(--primary); text-decoration: none; }
+    .step-desc a:hover { text-decoration: underline; }
+    .step-desc code {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 4px; padding: 1px 6px;
+      font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px;
+    }
+    .step-img {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--text2);
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      line-height: 1.6;
+    }
+    .setup-label { font-size: 12px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 8px; display: block; }
+    #configInput {
+      width: 100%;
+      min-height: 130px;
+      padding: 12px;
+      border: 1px solid var(--border2);
+      border-radius: 10px;
+      font-size: 12px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      color: var(--text);
+      background: var(--surface2);
+      resize: vertical;
+      outline: none;
+      transition: border-color .15s;
+      margin-bottom: 12px;
+    }
+    #configInput:focus { border-color: var(--primary); background: #fff; }
+    .setup-error {
+      display: none;
+      background: #fef2f2; border: 1px solid #fca5a5;
+      border-radius: 8px; padding: 10px 14px;
+      color: #b91c1c; font-size: 13px;
+      margin-bottom: 12px;
+    }
+    .setup-error.show { display: block; }
+    .setup-connect-btn {
+      width: 100%; padding: 13px;
+      background: var(--primary); color: #fff;
+      border: none; border-radius: 10px;
+      font-size: 15px; font-weight: 600;
+      cursor: pointer; font-family: inherit;
+      transition: background .15s;
+    }
+    .setup-connect-btn:hover { background: var(--primary-dark); }
+    .setup-connect-btn:disabled { opacity: .6; cursor: not-allowed; }
+    .setup-footer { text-align: center; font-size: 12px; color: var(--text3); margin-top: 14px; }
+    .setup-divider {
+      text-align: center; color: var(--text3); font-size: 12px;
+      margin: 16px 0; position: relative;
+    }
+    .setup-divider::before {
+      content: ''; position: absolute; left: 0; top: 50%;
+      width: 100%; height: 1px; background: var(--border);
+    }
+    .setup-divider span { background: #fff; padding: 0 12px; position: relative; }
+
+    /* ── Sync banner ── */
+    .sync-banner {
+      display: none;
+      padding: 9px 24px;
+      font-size: 13px;
+      align-items: center;
+      gap: 8px;
+    }
+    .sync-banner.connecting {
+      display: flex;
+      background: #eff6ff;
+      border-bottom: 1px solid #bfdbfe;
+      color: #1d4ed8;
+    }
+    .sync-banner.error {
+      display: flex;
+      background: #fef2f2;
+      border-bottom: 1px solid #fca5a5;
+      color: #b91c1c;
+    }
+    .spin {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid currentColor;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
     /* ── Header ── */
     header {
-      background: #1e293b;
-      color: #fff;
-      padding: 0 24px;
-      height: 56px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 100;
+      background: #1e293b; color: #fff;
+      padding: 0 24px; height: 56px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
     }
     .header-left { display: flex; align-items: center; gap: 12px; }
     .header-logo {
       width: 32px; height: 32px;
-      background: var(--primary);
-      border-radius: 8px;
-      display: grid; place-items: center;
-      font-size: 16px;
+      background: var(--primary); border-radius: 8px;
+      display: grid; place-items: center; font-size: 16px;
     }
     header h1 { font-size: 16px; font-weight: 600; }
     .header-right { display: flex; align-items: center; gap: 8px; }
@@ -74,15 +205,13 @@
       background: var(--surface);
       border-bottom: 1px solid var(--border);
       padding: 0 24px;
-      display: flex;
-      gap: 0;
+      display: flex; gap: 0;
+      min-height: 62px;
     }
     .stat-item {
       padding: 14px 24px;
       border-right: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
+      display: flex; flex-direction: column; gap: 2px;
       min-width: 120px;
     }
     .stat-item:first-child { padding-left: 0; }
@@ -90,16 +219,14 @@
     .stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--text2); font-weight: 500; }
     .stat-item.green .stat-value { color: #10b981; }
     .stat-item.amber .stat-value { color: #f59e0b; }
-    .stat-item.red .stat-value { color: #ef4444; }
+    .stat-item.red   .stat-value { color: #ef4444; }
     .stat-item.purple .stat-value { color: #8b5cf6; }
 
     /* ── Toolbar ── */
     .toolbar {
       padding: 16px 24px;
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      flex-wrap: wrap;
+      display: flex; gap: 12px;
+      align-items: center; flex-wrap: wrap;
     }
     .search-wrap { position: relative; flex: 1; min-width: 200px; max-width: 360px; }
     .search-wrap input {
@@ -108,91 +235,86 @@
       border: 1px solid var(--border2);
       border-radius: 8px;
       background: var(--surface);
-      font-size: 13px;
-      color: var(--text);
-      outline: none;
-      transition: border-color .15s;
+      font-size: 13px; color: var(--text);
+      outline: none; transition: border-color .15s;
     }
     .search-wrap input:focus { border-color: var(--primary); }
-    .search-icon {
-      position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
-      color: var(--text3); pointer-events: none;
-    }
+    .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text3); pointer-events: none; }
     select, .btn {
       padding: 8px 14px;
       border: 1px solid var(--border2);
       border-radius: 8px;
       background: var(--surface);
-      font-size: 13px;
-      color: var(--text);
-      cursor: pointer;
-      outline: none;
-      font-family: inherit;
+      font-size: 13px; color: var(--text);
+      cursor: pointer; outline: none; font-family: inherit;
     }
     select:focus { border-color: var(--primary); }
     .btn { display: flex; align-items: center; gap: 6px; font-weight: 500; transition: all .15s; }
     .btn:hover { background: var(--surface2); }
     .btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
     .btn.primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); }
-    .btn.danger { color: #ef4444; }
-    .btn.danger:hover { background: #fef2f2; border-color: #fca5a5; }
 
     .view-toggle {
       display: flex;
       border: 1px solid var(--border2);
-      border-radius: 8px;
-      overflow: hidden;
+      border-radius: 8px; overflow: hidden;
       background: var(--surface);
     }
     .view-toggle button {
-      padding: 7px 14px;
-      border: none;
-      background: transparent;
-      cursor: pointer;
-      font-size: 13px;
-      color: var(--text2);
+      padding: 7px 14px; border: none; background: transparent;
+      cursor: pointer; font-size: 13px; color: var(--text2);
       font-family: inherit;
       display: flex; align-items: center; gap: 5px;
       transition: all .15s;
     }
     .view-toggle button.active { background: var(--primary); color: #fff; }
     .view-toggle button:not(.active):hover { background: var(--surface2); }
-
     .toolbar-right { margin-left: auto; display: flex; gap: 8px; }
 
-    /* ── Table View ── */
-    .view-container { padding: 0 24px 32px; }
-
-    .table-wrap {
+    /* ── Data Menu ── */
+    .data-menu-wrap { position: relative; }
+    .data-menu {
+      position: absolute; right: 0; top: calc(100% + 6px);
       background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      overflow: hidden;
+      border: 1px solid var(--border2);
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.12);
+      min-width: 200px;
+      overflow: hidden; z-index: 150; display: none;
     }
+    .data-menu.open { display: block; }
+    .data-menu-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 11px 16px; cursor: pointer;
+      font-size: 13px; color: var(--text);
+      transition: background .1s;
+      border: none; background: none; width: 100%; text-align: left; font-family: inherit;
+    }
+    .data-menu-item:hover { background: var(--surface2); }
+    .data-menu-item.danger { color: #ef4444; }
+    .data-menu-item.danger:hover { background: #fef2f2; }
+    .data-menu-item .menu-icon { font-size: 15px; width: 20px; text-align: center; }
+    .data-menu-item .menu-desc { font-size: 11px; color: var(--text3); display: block; }
+    .data-menu-divider { border: none; border-top: 1px solid var(--border); margin: 4px 0; }
+
+    /* ── Table ── */
+    .view-container { padding: 0 24px 32px; }
+    .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
     table { width: 100%; border-collapse: collapse; }
     thead th {
-      padding: 11px 14px;
-      text-align: left;
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: .05em;
-      color: var(--text2);
-      background: var(--surface2);
-      border-bottom: 1px solid var(--border);
-      cursor: pointer;
-      user-select: none;
-      white-space: nowrap;
+      padding: 11px 14px; text-align: left;
+      font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: .05em; color: var(--text2);
+      background: var(--surface2); border-bottom: 1px solid var(--border);
+      cursor: pointer; user-select: none; white-space: nowrap;
     }
     thead th:hover { color: var(--text); }
-    thead th .sort-icon { display: inline-block; margin-left: 4px; opacity: .4; }
-    thead th.sorted .sort-icon { opacity: 1; color: var(--primary); }
     tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
     tbody tr:last-child { border-bottom: none; }
     tbody tr:hover { background: var(--surface2); }
     tbody td { padding: 12px 14px; vertical-align: middle; }
     .td-num { color: var(--text3); font-size: 12px; width: 40px; }
-    .td-company { font-weight: 600; color: var(--text); }
+    .td-company { font-weight: 600; }
     .td-role { color: var(--text2); font-size: 13px; max-width: 220px; }
     .td-date { color: var(--text2); white-space: nowrap; font-size: 13px; }
     .td-contact { color: var(--text2); font-size: 13px; }
@@ -213,88 +335,57 @@
       font-size: 11px; font-weight: 600; white-space: nowrap;
     }
     .stage-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-    .stage-Applied    { background: var(--applied-bg);   color: var(--applied);   }
-    .stage-Applied    .stage-dot { background: var(--applied); }
-    .stage-HM-Outreach{ background: var(--outreach-bg); color: var(--outreach); }
+    .stage-Applied     { background: var(--applied-bg);   color: var(--applied); }
+    .stage-Applied     .stage-dot { background: var(--applied); }
+    .stage-HM-Outreach { background: var(--outreach-bg);  color: var(--outreach); }
     .stage-HM-Outreach .stage-dot { background: var(--outreach); }
-    .stage-Phone-Screen{ background: var(--phone-bg);   color: #b45309; }
+    .stage-Phone-Screen { background: var(--phone-bg);    color: #b45309; }
     .stage-Phone-Screen .stage-dot { background: var(--phone); }
-    .stage-Interview  { background: var(--interview-bg); color: #c2410c; }
-    .stage-Interview  .stage-dot { background: var(--interview); }
-    .stage-Final-Round{ background: var(--final-bg);   color: #b91c1c; }
+    .stage-Interview   { background: var(--interview-bg); color: #c2410c; }
+    .stage-Interview   .stage-dot { background: var(--interview); }
+    .stage-Final-Round { background: var(--final-bg);     color: #b91c1c; }
     .stage-Final-Round .stage-dot { background: var(--final); }
-    .stage-Offer      { background: var(--offer-bg);   color: #047857; }
-    .stage-Offer      .stage-dot { background: var(--offer); }
-    .stage-Rejected   { background: var(--rejected-bg); color: var(--rejected); }
-    .stage-Rejected   .stage-dot { background: var(--rejected); }
-    .stage-Withdrawn  { background: var(--withdrawn-bg); color: var(--withdrawn); }
-    .stage-Withdrawn  .stage-dot { background: var(--withdrawn); }
+    .stage-Offer       { background: var(--offer-bg);     color: #047857; }
+    .stage-Offer       .stage-dot { background: var(--offer); }
+    .stage-Rejected    { background: var(--rejected-bg);  color: var(--rejected); }
+    .stage-Rejected    .stage-dot { background: var(--rejected); }
+    .stage-Withdrawn   { background: var(--withdrawn-bg); color: var(--withdrawn); }
+    .stage-Withdrawn   .stage-dot { background: var(--withdrawn); }
 
-    /* ── Kanban View ── */
-    .kanban-board {
-      display: flex;
-      gap: 12px;
-      overflow-x: auto;
-      padding-bottom: 12px;
-    }
-    .kanban-col {
-      flex: 0 0 240px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
+    /* ── Kanban ── */
+    .kanban-board { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 12px; }
+    .kanban-col { flex: 0 0 240px; display: flex; flex-direction: column; gap: 8px; }
     .kanban-col-header {
-      padding: 10px 12px;
-      border-radius: 8px 8px 0 0;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-weight: 600;
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: .04em;
+      padding: 10px 12px; border-radius: 8px 8px 0 0;
+      display: flex; align-items: center; justify-content: space-between;
+      font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .04em;
       border-bottom: 2px solid transparent;
     }
-    .kanban-count {
-      background: rgba(0,0,0,.1);
-      border-radius: 10px;
-      padding: 1px 7px;
-      font-size: 11px;
-    }
+    .kanban-count { background: rgba(0,0,0,.1); border-radius: 10px; padding: 1px 7px; font-size: 11px; }
     .kanban-cards { display: flex; flex-direction: column; gap: 8px; }
     .kanban-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px;
-      cursor: pointer;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px; cursor: pointer;
       transition: box-shadow .15s, transform .1s;
     }
-    .kanban-card:hover {
-      box-shadow: 0 4px 12px rgba(0,0,0,.08);
-      transform: translateY(-1px);
-    }
+    .kanban-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.08); transform: translateY(-1px); }
     .kanban-card-company { font-weight: 600; font-size: 13px; margin-bottom: 2px; }
     .kanban-card-role { font-size: 12px; color: var(--text2); margin-bottom: 6px; line-height: 1.4; }
     .kanban-card-date { font-size: 11px; color: var(--text3); }
     .kanban-card-contact { font-size: 11px; color: var(--outreach); margin-top: 4px; }
     .kanban-card-notes { font-size: 11px; color: var(--text2); margin-top: 4px; font-style: italic; }
 
-    /* Stage colors for kanban */
     .col-Applied       { background: var(--applied-bg);   border-color: var(--applied);   color: var(--applied); }
-    .col-HM\ Outreach  { background: var(--outreach-bg);  border-color: var(--outreach);  color: var(--outreach); }
-    .col-Phone\ Screen { background: var(--phone-bg);     border-color: var(--phone);     color: #b45309; }
+    .col-HM-Outreach   { background: var(--outreach-bg);  border-color: var(--outreach);  color: var(--outreach); }
+    .col-Phone-Screen  { background: var(--phone-bg);     border-color: var(--phone);     color: #b45309; }
     .col-Interview     { background: var(--interview-bg); border-color: var(--interview); color: #c2410c; }
-    .col-Final\ Round  { background: var(--final-bg);     border-color: var(--final);     color: #b91c1c; }
+    .col-Final-Round   { background: var(--final-bg);     border-color: var(--final);     color: #b91c1c; }
     .col-Offer         { background: var(--offer-bg);     border-color: var(--offer);     color: #047857; }
     .col-Rejected      { background: var(--rejected-bg);  border-color: #d1d5db;          color: var(--rejected); }
     .col-Withdrawn     { background: var(--withdrawn-bg); border-color: #cbd5e1;          color: var(--withdrawn); }
 
-    /* ── Empty State ── */
-    .empty-state {
-      text-align: center; padding: 64px 24px;
-      color: var(--text2);
-    }
+    /* ── Empty ── */
+    .empty-state { text-align: center; padding: 64px 24px; color: var(--text2); }
     .empty-state-icon { font-size: 48px; margin-bottom: 12px; }
     .empty-state h3 { font-size: 16px; margin-bottom: 4px; color: var(--text); }
 
@@ -303,76 +394,58 @@
       position: fixed; inset: 0;
       background: rgba(0,0,0,.4);
       display: grid; place-items: center;
-      z-index: 200;
-      opacity: 0; visibility: hidden;
-      transition: opacity .2s;
+      z-index: 200; opacity: 0; visibility: hidden; transition: opacity .2s;
     }
     .modal-overlay.open { opacity: 1; visibility: visible; }
     .modal {
-      background: var(--surface);
-      border-radius: 16px;
-      width: 560px;
-      max-width: calc(100vw - 48px);
-      max-height: calc(100vh - 80px);
-      overflow-y: auto;
+      background: var(--surface); border-radius: 16px;
+      width: 560px; max-width: calc(100vw - 48px);
+      max-height: calc(100vh - 80px); overflow-y: auto;
       box-shadow: 0 20px 60px rgba(0,0,0,.2);
-      transform: scale(.96);
-      transition: transform .2s;
+      transform: scale(.96); transition: transform .2s;
     }
     .modal-overlay.open .modal { transform: scale(1); }
     .modal-header {
-      padding: 20px 24px 16px;
-      border-bottom: 1px solid var(--border);
+      padding: 20px 24px 16px; border-bottom: 1px solid var(--border);
       display: flex; align-items: center; justify-content: space-between;
     }
     .modal-title { font-size: 16px; font-weight: 600; }
     .modal-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; }
-    .modal-footer {
-      padding: 16px 24px;
-      border-top: 1px solid var(--border);
-      display: flex; justify-content: flex-end; gap: 8px;
-    }
+    .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
     .form-group { display: flex; flex-direction: column; gap: 6px; }
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     label { font-size: 12px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .04em; }
     input[type=text], input[type=date], textarea, select.form-select {
-      padding: 9px 12px;
-      border: 1px solid var(--border2);
-      border-radius: 8px;
-      font-size: 14px;
-      color: var(--text);
-      background: var(--surface);
-      font-family: inherit;
-      outline: none;
-      transition: border-color .15s;
-      width: 100%;
+      padding: 9px 12px; border: 1px solid var(--border2); border-radius: 8px;
+      font-size: 14px; color: var(--text); background: var(--surface);
+      font-family: inherit; outline: none; transition: border-color .15s; width: 100%;
     }
     input[type=text]:focus, input[type=date]:focus, textarea:focus, select.form-select:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(59,130,246,.1);
+      border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59,130,246,.1);
     }
     textarea { resize: vertical; min-height: 72px; }
 
-    /* ── Pagination / footer ── */
+    /* ── Import options ── */
+    .import-option {
+      border: 2px solid var(--border); border-radius: 10px; padding: 14px 16px;
+      cursor: pointer; transition: border-color .15s, background .15s;
+    }
+    .import-option:hover { border-color: var(--primary); background: var(--applied-bg); }
+    .import-option.selected { border-color: var(--primary); background: var(--applied-bg); }
+    .import-option-title { font-weight: 600; font-size: 14px; margin-bottom: 3px; }
+    .import-option-desc { font-size: 12px; color: var(--text2); line-height: 1.4; }
+
+    /* ── Table footer ── */
     .table-footer {
-      padding: 10px 16px;
-      border-top: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: var(--surface2);
-      font-size: 12px;
-      color: var(--text2);
+      padding: 10px 16px; border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--surface2); font-size: 12px; color: var(--text2);
     }
     .pagination { display: flex; gap: 4px; }
     .page-btn {
-      padding: 4px 10px;
-      border: 1px solid var(--border2);
-      border-radius: 6px;
-      background: var(--surface);
-      cursor: pointer;
-      font-size: 12px;
-      color: var(--text2);
+      padding: 4px 10px; border: 1px solid var(--border2);
+      border-radius: 6px; background: var(--surface);
+      cursor: pointer; font-size: 12px; color: var(--text2);
     }
     .page-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
     .page-btn:hover:not(.active) { background: var(--surface2); }
@@ -384,83 +457,16 @@
       padding: 12px 18px; border-radius: 10px;
       font-size: 13px; font-weight: 500;
       box-shadow: 0 8px 24px rgba(0,0,0,.2);
-      transform: translateY(80px);
-      opacity: 0;
-      transition: all .3s;
+      transform: translateY(80px); opacity: 0; transition: all .3s;
       z-index: 300;
-      display: flex; align-items: center; gap: 8px;
     }
     .toast.show { transform: translateY(0); opacity: 1; }
     .toast.green { background: #047857; }
 
-    /* ── Data Menu ── */
-    .data-menu-wrap { position: relative; }
-    .data-menu {
-      position: absolute; right: 0; top: calc(100% + 6px);
-      background: var(--surface);
-      border: 1px solid var(--border2);
-      border-radius: 10px;
-      box-shadow: 0 8px 24px rgba(0,0,0,.12);
-      min-width: 190px;
-      overflow: hidden;
-      z-index: 150;
-      display: none;
-    }
-    .data-menu.open { display: block; }
-    .data-menu-item {
-      display: flex; align-items: center; gap: 10px;
-      padding: 11px 16px;
-      cursor: pointer;
-      font-size: 13px;
-      color: var(--text);
-      transition: background .1s;
-      border: none; background: none; width: 100%; text-align: left; font-family: inherit;
-    }
-    .data-menu-item:hover { background: var(--surface2); }
-    .data-menu-item .menu-icon { font-size: 15px; width: 20px; text-align: center; }
-    .data-menu-item .menu-desc { font-size: 11px; color: var(--text3); display: block; }
-    .data-menu-divider { border: none; border-top: 1px solid var(--border); margin: 4px 0; }
-
-    /* ── Import confirm modal ── */
-    .import-option {
-      border: 2px solid var(--border);
-      border-radius: 10px;
-      padding: 14px 16px;
-      cursor: pointer;
-      transition: border-color .15s, background .15s;
-    }
-    .import-option:hover { border-color: var(--primary); background: var(--applied-bg); }
-    .import-option.selected { border-color: var(--primary); background: var(--applied-bg); }
-    .import-option-title { font-weight: 600; font-size: 14px; margin-bottom: 3px; }
-    .import-option-desc { font-size: 12px; color: var(--text2); line-height: 1.4; }
-
-    /* Scrollbar */
+    /* ── Scrollbar ── */
     .kanban-board::-webkit-scrollbar { height: 6px; }
     .kanban-board::-webkit-scrollbar-track { background: transparent; }
     .kanban-board::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
-
-    /* ── Storage banner ── */
-    .storage-banner {
-      display: none;
-      background: #fffbeb;
-      border-bottom: 1px solid #fde68a;
-      padding: 10px 24px;
-      font-size: 13px;
-      color: #92400e;
-      align-items: center;
-      gap: 10px;
-    }
-    .storage-banner.show { display: flex; }
-    .storage-banner strong { font-weight: 600; }
-    .storage-banner .banner-btn {
-      margin-left: auto; flex-shrink: 0;
-      padding: 5px 12px;
-      background: #f59e0b; color: #fff;
-      border: none; border-radius: 6px;
-      font-size: 12px; font-weight: 600;
-      cursor: pointer; font-family: inherit;
-    }
-    .storage-banner .banner-btn:hover { background: #d97706; }
 
     @media (max-width: 640px) {
       .stats-bar { overflow-x: auto; }
@@ -468,10 +474,107 @@
       .toolbar { padding: 12px 16px; }
       .view-container { padding: 0 16px 24px; }
       .form-row { grid-template-columns: 1fr; }
+      .setup-card { padding: 24px; margin-top: 16px; }
     }
   </style>
 </head>
 <body>
+
+<!-- ══════════════════════════════════════════════════════
+     SETUP OVERLAY — shown until Firebase is configured
+     ══════════════════════════════════════════════════════ -->
+<div class="setup-overlay" id="setupOverlay">
+  <div class="setup-card">
+    <div class="setup-logo">📋</div>
+    <h2>Connect IT Pipeline Tracker</h2>
+    <p class="setup-desc">This is a one-time setup. Connect a free Firebase database and your data will automatically sync across all your devices — no import/export needed.</p>
+
+    <div class="setup-steps">
+
+      <div class="setup-step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <div class="step-title">Create a free Firebase project</div>
+          <div class="step-desc">
+            Go to <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a>
+            → Click <strong>Add project</strong> → Name it (e.g. <em>IT Pipeline</em>)
+            → Click <strong>Continue</strong> → Turn off Google Analytics → Click <strong>Create project</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="setup-step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <div class="step-title">Create a Realtime Database</div>
+          <div class="step-desc">
+            In the left sidebar → <strong>Build</strong> → <strong>Realtime Database</strong>
+            → <strong>Create database</strong> → Choose any location → Select
+            <strong>Start in test mode</strong> → <strong>Enable</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="setup-step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <div class="step-title">Update database rules (keeps it open permanently)</div>
+          <div class="step-desc">
+            In Realtime Database → click the <strong>Rules</strong> tab → replace everything with this → click <strong>Publish</strong>:
+          </div>
+          <div class="step-img">{
+  "rules": {
+    ".read": true,
+    ".write": true
+  }
+}</div>
+        </div>
+      </div>
+
+      <div class="setup-step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <div class="step-title">Get your app config</div>
+          <div class="step-desc">
+            Click the <strong>⚙️ gear icon</strong> (top-left) → <strong>Project settings</strong>
+            → Scroll to <strong>Your apps</strong> → Click <strong>&lt;/&gt; Web</strong>
+            → Register with any nickname → Skip Firebase Hosting
+            → Copy the <code>firebaseConfig</code> object shown on screen
+          </div>
+        </div>
+      </div>
+
+      <div class="setup-step">
+        <div class="step-num">5</div>
+        <div class="step-content">
+          <div class="step-title">Paste your config below and connect</div>
+          <div class="step-desc">Paste the full <code>firebaseConfig</code> object (curly braces and all) into the box below.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <span class="setup-label">Your firebaseConfig</span>
+    <textarea id="configInput" placeholder='{
+  apiKey: "AIzaSy...",
+  authDomain: "your-project.firebaseapp.com",
+  databaseURL: "https://your-project-default-rtdb.firebaseio.com",
+  projectId: "your-project",
+  storageBucket: "your-project.appspot.com",
+  messagingSenderId: "123456789",
+  appId: "1:123456789:web:abc123"
+}'></textarea>
+
+    <div class="setup-error" id="setupError"></div>
+    <button class="setup-connect-btn" id="connectBtn" onclick="handleConnect()">Connect & Sync →</button>
+    <div class="setup-footer">🔒 Your config is stored only on this device. Your data lives in your Firebase project.</div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════
+     MAIN APP
+     ══════════════════════════════════════════════════════ -->
 
 <!-- Header -->
 <header>
@@ -484,11 +587,10 @@
   </div>
 </header>
 
-<!-- Storage Banner (shown when localStorage is unavailable) -->
-<div class="storage-banner" id="storageBanner">
-  <span>⚠️</span>
-  <span><strong>Changes won't persist between sessions on this device.</strong> Export JSON before closing to save your work, then Import it next time you open the file.</span>
-  <button class="banner-btn" onclick="exportJSON()">Export Now</button>
+<!-- Sync Banner -->
+<div class="sync-banner" id="syncBanner">
+  <span class="spin" id="syncSpinner"></span>
+  <span id="syncMsg">Connecting to Firebase…</span>
 </div>
 
 <!-- Stats Bar -->
@@ -528,7 +630,7 @@
       <div class="data-menu" id="dataMenu">
         <button class="data-menu-item" onclick="exportJSON()">
           <span class="menu-icon">↓</span>
-          <span>Export JSON<span class="menu-desc">Full backup · for re-importing</span></span>
+          <span>Export JSON<span class="menu-desc">Backup · re-importable</span></span>
         </button>
         <button class="data-menu-item" onclick="exportCSV()">
           <span class="menu-icon">↓</span>
@@ -537,15 +639,17 @@
         <hr class="data-menu-divider">
         <button class="data-menu-item" onclick="triggerImport()">
           <span class="menu-icon">↑</span>
-          <span>Import JSON<span class="menu-desc">Load a previously exported file</span></span>
+          <span>Import JSON<span class="menu-desc">Restore a backup file</span></span>
+        </button>
+        <hr class="data-menu-divider">
+        <button class="data-menu-item danger" onclick="resetConfig()">
+          <span class="menu-icon">⚙️</span>
+          <span>Change Firebase Config</span>
         </button>
       </div>
     </div>
   </div>
 </div>
-
-<!-- Hidden file input for import -->
-<input type="file" id="importInput" accept=".json" style="display:none" onchange="handleImport(event)">
 
 <!-- Content -->
 <div class="view-container">
@@ -553,7 +657,10 @@
   <div id="kanbanView" style="display:none"></div>
 </div>
 
-<!-- Modal -->
+<!-- Hidden file input -->
+<input type="file" id="importInput" accept=".json" style="display:none" onchange="handleImport(event)">
+
+<!-- Add/Edit Modal -->
 <div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
   <div class="modal">
     <div class="modal-header">
@@ -619,11 +726,11 @@
       <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px">
         <div class="import-option selected" id="optReplace" onclick="selectImportMode('replace')">
           <div class="import-option-title">Replace All</div>
-          <div class="import-option-desc">Wipe current data and load the imported file. Use this when the file is your most up-to-date copy.</div>
+          <div class="import-option-desc">Wipe current data and load the imported file. Use when the file is your most up-to-date copy.</div>
         </div>
         <div class="import-option" id="optMerge" onclick="selectImportMode('merge')">
           <div class="import-option-title">Merge</div>
-          <div class="import-option-desc">Keep your current data and add any new entries from the file (matched by ID). Good for picking up additions from another device without losing local changes.</div>
+          <div class="import-option-desc">Keep current data and add any new entries from the file (matched by ID).</div>
         </div>
       </div>
     </div>
@@ -637,8 +744,9 @@
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
+
 <script>
-// ── Initial Dataset ──────────────────────────────────────────────────────────
+// ── Initial Dataset (seed data for first-ever launch) ────────────────────────
 const INITIAL_DATA = [
   {"id":1,"company":"Raising Cane's","role":"Senior IT Manager","applied":"2026-04-30","stage":"Rejected","hmContact":"","notes":"Rejected via email 5/2"},
   {"id":2,"company":"Applied Digital","role":"Director of IT","applied":"2026-04-30","stage":"Applied","hmContact":"","notes":""},
@@ -736,58 +844,145 @@ const INITIAL_DATA = [
 
 const STAGES = ["Applied","HM Outreach","Phone Screen","Interview","Final Round","Offer","Rejected","Withdrawn"];
 
-// ── State ────────────────────────────────────────────────────────────────────
+// ── App State ─────────────────────────────────────────────────────────────────
 let data = [];
 let filtered = [];
 let currentView = 'table';
 let currentPage = 1;
 const PAGE_SIZE = 25;
-let nextId = 100;
-let storageOK = false;
+let nextId = 1000;
+let db = null;
 
-function checkStorage() {
-  try {
-    const key = '__storage_test__';
-    localStorage.setItem(key, '1');
-    localStorage.removeItem(key);
-    return true;
-  } catch { return false; }
+// ── Firebase Setup ────────────────────────────────────────────────────────────
+function getSavedConfig() {
+  try { return JSON.parse(localStorage.getItem('fb-config') || 'null'); } catch { return null; }
 }
 
-function load() {
-  storageOK = checkStorage();
-  if (!storageOK) {
-    // localStorage blocked (common on iPadOS file:// in some Safari configs)
-    data = [...INITIAL_DATA];
-    // Show banner after DOM is ready
-    setTimeout(() => document.getElementById('storageBanner').classList.add('show'), 0);
+function parseConfig(text) {
+  // Extract the {...} object from whatever the user pasted
+  const match = text.match(/\{[\s\S]*\}/);
+  if (!match) return null;
+  try { return new Function('return (' + match[0] + ')')(); } catch { return null; }
+}
+
+function showSetupError(msg) {
+  const el = document.getElementById('setupError');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+
+function clearSetupError() {
+  document.getElementById('setupError').classList.remove('show');
+}
+
+function showSyncBanner(state, msg) {
+  const banner = document.getElementById('syncBanner');
+  const spinner = document.getElementById('syncSpinner');
+  const msgEl = document.getElementById('syncMsg');
+  banner.className = 'sync-banner ' + state;
+  spinner.style.display = state === 'connecting' ? 'inline-block' : 'none';
+  msgEl.textContent = msg;
+}
+
+function hideSyncBanner() {
+  document.getElementById('syncBanner').className = 'sync-banner';
+}
+
+async function handleConnect() {
+  clearSetupError();
+  const text = document.getElementById('configInput').value.trim();
+  if (!text) { showSetupError('Please paste your firebaseConfig object first.'); return; }
+
+  const config = parseConfig(text);
+  if (!config || !config.apiKey || config.apiKey.includes('YOUR')) {
+    showSetupError('Could not read the config — make sure you copied the full firebaseConfig object including the curly braces.');
+    return;
+  }
+  if (!config.databaseURL) {
+    showSetupError('Your config is missing the databaseURL. Make sure you created a Realtime Database in step 2 and re-copied the config.');
+    return;
+  }
+
+  const btn = document.getElementById('connectBtn');
+  btn.textContent = 'Connecting…';
+  btn.disabled = true;
+
+  try {
+    if (!firebase.apps.length) firebase.initializeApp(config);
+    db = firebase.database();
+    // Quick connection test
+    await db.ref('.info/connected').once('value');
+    // Save config and hide setup
+    localStorage.setItem('fb-config', JSON.stringify(config));
+    document.getElementById('setupOverlay').classList.add('hidden');
+    startListening();
+  } catch (e) {
+    btn.textContent = 'Connect & Sync →';
+    btn.disabled = false;
+    showSetupError('Connection failed: ' + (e.message || 'Unknown error') + '. Double-check your config and database rules.');
+  }
+}
+
+function resetConfig() {
+  document.getElementById('dataMenu').classList.remove('open');
+  if (!confirm('This will disconnect from Firebase and show the setup screen. Your data in Firebase is safe.\n\nContinue?')) return;
+  localStorage.removeItem('fb-config');
+  if (db) { db.ref('pipeline').off(); db = null; }
+  document.getElementById('configInput').value = '';
+  clearSetupError();
+  document.getElementById('connectBtn').textContent = 'Connect & Sync →';
+  document.getElementById('connectBtn').disabled = false;
+  document.getElementById('setupOverlay').classList.remove('hidden');
+}
+
+function startListening() {
+  showSyncBanner('connecting', 'Connecting to Firebase…');
+
+  db.ref('pipeline').on('value', snapshot => {
+    hideSyncBanner();
+    const val = snapshot.val();
+    if (val && Array.isArray(val) && val.length > 0) {
+      data = val;
+      nextId = Math.max(...data.map(d => d.id), 0) + 1;
+    } else {
+      // First time ever — seed Firebase with the initial dataset
+      data = [...INITIAL_DATA];
+      nextId = 1000;
+      db.ref('pipeline').set(data);
+    }
+    applyFilters();
+  }, err => {
+    showSyncBanner('error', 'Firebase error — ' + err.message + '. Check your database rules.');
+  });
+}
+
+// ── Persist ───────────────────────────────────────────────────────────────────
+function save() {
+  if (!db) return;
+  db.ref('pipeline').set(data);
+}
+
+// ── Startup ───────────────────────────────────────────────────────────────────
+function init() {
+  const config = getSavedConfig();
+  if (!config) {
+    // Show setup overlay — render a blank app behind it
+    applyFilters();
     return;
   }
   try {
-    const saved = localStorage.getItem('it-pipeline-data');
-    if (saved) {
-      data = JSON.parse(saved);
-      nextId = Math.max(...data.map(d => d.id), 0) + 1;
-    } else {
-      data = [...INITIAL_DATA];
-    }
-  } catch {
-    data = [...INITIAL_DATA];
+    if (!firebase.apps.length) firebase.initializeApp(config);
+    db = firebase.database();
+    document.getElementById('setupOverlay').classList.add('hidden');
+    startListening();
+  } catch (e) {
+    // Saved config is bad — show setup
+    localStorage.removeItem('fb-config');
+    applyFilters();
   }
 }
 
-function save() {
-  if (!storageOK) return;   // silently skip — banner already tells user to export
-  try {
-    localStorage.setItem('it-pipeline-data', JSON.stringify(data));
-  } catch {
-    // Storage full or revoked mid-session — show banner
-    storageOK = false;
-    document.getElementById('storageBanner').classList.add('show');
-  }
-}
-
-// ── Filtering & Sorting ──────────────────────────────────────────────────────
+// ── Filtering & Sorting ───────────────────────────────────────────────────────
 function applyFilters() {
   const q = document.getElementById('searchInput').value.toLowerCase();
   const stage = document.getElementById('stageFilter').value;
@@ -802,8 +997,8 @@ function applyFilters() {
 
   const [field, dir] = sort.split('-');
   filtered.sort((a, b) => {
-    let va = (field === 'stage') ? STAGES.indexOf(a.stage) : (a[field]||'');
-    let vb = (field === 'stage') ? STAGES.indexOf(b.stage) : (b[field]||'');
+    let va = field === 'stage' ? STAGES.indexOf(a.stage) : (a[field]||'');
+    let vb = field === 'stage' ? STAGES.indexOf(b.stage) : (b[field]||'');
     if (va < vb) return dir === 'asc' ? -1 : 1;
     if (va > vb) return dir === 'asc' ? 1 : -1;
     return 0;
@@ -814,39 +1009,27 @@ function applyFilters() {
   render();
 }
 
-// ── Stats ────────────────────────────────────────────────────────────────────
+// ── Stats ─────────────────────────────────────────────────────────────────────
 function renderStats() {
   const total = data.length;
-  const active = data.filter(d => !['Rejected','Withdrawn'].includes(d.stage)).length;
+  if (total === 0) {
+    document.getElementById('statsBar').innerHTML = '';
+    return;
+  }
+  const active   = data.filter(d => !['Rejected','Withdrawn'].includes(d.stage)).length;
   const advanced = data.filter(d => ['Phone Screen','Interview','Final Round','Offer'].includes(d.stage)).length;
   const rejected = data.filter(d => d.stage === 'Rejected').length;
-  const responseRate = total > 0 ? Math.round((total - data.filter(d=>d.stage==='Applied').length) / total * 100) : 0;
+  const rr = Math.round((total - data.filter(d => d.stage === 'Applied').length) / total * 100);
 
   document.getElementById('statsBar').innerHTML = `
-    <div class="stat-item">
-      <div class="stat-value">${total}</div>
-      <div class="stat-label">Total Applied</div>
-    </div>
-    <div class="stat-item green">
-      <div class="stat-value">${active}</div>
-      <div class="stat-label">Active</div>
-    </div>
-    <div class="stat-item purple">
-      <div class="stat-value">${advanced}</div>
-      <div class="stat-label">Advanced</div>
-    </div>
-    <div class="stat-item red">
-      <div class="stat-value">${rejected}</div>
-      <div class="stat-label">Rejected</div>
-    </div>
-    <div class="stat-item amber">
-      <div class="stat-value">${responseRate}%</div>
-      <div class="stat-label">Response Rate</div>
-    </div>
-  `;
+    <div class="stat-item"><div class="stat-value">${total}</div><div class="stat-label">Total Applied</div></div>
+    <div class="stat-item green"><div class="stat-value">${active}</div><div class="stat-label">Active</div></div>
+    <div class="stat-item purple"><div class="stat-value">${advanced}</div><div class="stat-label">Advanced</div></div>
+    <div class="stat-item red"><div class="stat-value">${rejected}</div><div class="stat-label">Rejected</div></div>
+    <div class="stat-item amber"><div class="stat-value">${rr}%</div><div class="stat-label">Response Rate</div></div>`;
 }
 
-// ── Render ───────────────────────────────────────────────────────────────────
+// ── Render ────────────────────────────────────────────────────────────────────
 function render() {
   if (currentView === 'table') renderTable();
   else renderKanban();
@@ -861,15 +1044,15 @@ function fmtDate(d) {
   if (!d) return '';
   const iso = d.match(/^(\d{4})-(\d{2})-(\d{2})/);
   if (iso) {
-    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    return `${months[+iso[2]-1]} ${+iso[3]}`;
+    const m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${m[+iso[2]-1]} ${+iso[3]}`;
   }
   return d;
 }
 
 function renderTable() {
   const start = (currentPage - 1) * PAGE_SIZE;
-  const page = filtered.slice(start, start + PAGE_SIZE);
+  const page  = filtered.slice(start, start + PAGE_SIZE);
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
 
   if (filtered.length === 0) {
@@ -899,18 +1082,18 @@ function renderTable() {
       </td>
     </tr>`).join('');
 
-  let pagination = '';
+  let pages = '';
   if (totalPages > 1) {
-    const pages = [];
-    if (currentPage > 1) pages.push(`<button class="page-btn" onclick="goPage(${currentPage-1})">‹</button>`);
+    const btns = [];
+    if (currentPage > 1) btns.push(`<button class="page-btn" onclick="goPage(${currentPage-1})">‹</button>`);
     for (let i = 1; i <= totalPages; i++) {
       if (i === 1 || i === totalPages || Math.abs(i - currentPage) <= 1)
-        pages.push(`<button class="page-btn ${i===currentPage?'active':''}" onclick="goPage(${i})">${i}</button>`);
+        btns.push(`<button class="page-btn ${i===currentPage?'active':''}" onclick="goPage(${i})">${i}</button>`);
       else if (Math.abs(i - currentPage) === 2)
-        pages.push(`<span style="padding:4px 6px;color:var(--text3)">…</span>`);
+        btns.push(`<span style="padding:4px 6px;color:var(--text3)">…</span>`);
     }
-    if (currentPage < totalPages) pages.push(`<button class="page-btn" onclick="goPage(${currentPage+1})">›</button>`);
-    pagination = pages.join('');
+    if (currentPage < totalPages) btns.push(`<button class="page-btn" onclick="goPage(${currentPage+1})">›</button>`);
+    pages = btns.join('');
   }
 
   document.getElementById('tableView').innerHTML = `
@@ -918,21 +1101,15 @@ function renderTable() {
       <table>
         <thead>
           <tr>
-            <th>#</th>
-            <th>Company</th>
-            <th>Role</th>
-            <th>Applied</th>
-            <th>Stage</th>
-            <th>HM Contact</th>
-            <th>Notes</th>
-            <th></th>
+            <th>#</th><th>Company</th><th>Role</th><th>Applied</th>
+            <th>Stage</th><th>HM Contact</th><th>Notes</th><th></th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
       </table>
       <div class="table-footer">
-        <span>Showing ${start+1}–${Math.min(start+PAGE_SIZE, filtered.length)} of ${filtered.length} applications</span>
-        <div class="pagination">${pagination}</div>
+        <span>Showing ${start+1}–${Math.min(start+PAGE_SIZE,filtered.length)} of ${filtered.length} applications</span>
+        <div class="pagination">${pages}</div>
       </div>
     </div>`;
 }
@@ -940,7 +1117,7 @@ function renderTable() {
 function renderKanban() {
   const cols = STAGES.map(stage => {
     const cards = filtered.filter(r => r.stage === stage);
-    const cls = 'col-' + stage;
+    const cls = 'col-' + stage.replace(/ /g, '-');
     const cardHTML = cards.map(row => `
       <div class="kanban-card" onclick="openModal(${row.id})">
         <div class="kanban-card-company">${esc(row.company)}</div>
@@ -949,84 +1126,72 @@ function renderKanban() {
         ${row.hmContact ? `<div class="kanban-card-contact">👤 ${esc(row.hmContact)}</div>` : ''}
         ${row.notes ? `<div class="kanban-card-notes">${esc(row.notes)}</div>` : ''}
       </div>`).join('');
-
     return `
       <div class="kanban-col">
         <div class="kanban-col-header ${cls}">
-          <span>${stage}</span>
-          <span class="kanban-count">${cards.length}</span>
+          <span>${stage}</span><span class="kanban-count">${cards.length}</span>
         </div>
         <div class="kanban-cards">
           ${cardHTML || `<div style="padding:12px;color:var(--text3);font-size:12px;text-align:center">—</div>`}
         </div>
       </div>`;
   }).join('');
-
   document.getElementById('kanbanView').innerHTML = `<div class="kanban-board">${cols}</div>`;
 }
 
-function goPage(p) { currentPage = p; render(); window.scrollTo(0, 0); }
+function goPage(p) { currentPage = p; render(); window.scrollTo(0,0); }
 
 function setView(v) {
   currentView = v;
-  document.getElementById('tableView').style.display = v === 'table' ? '' : 'none';
+  document.getElementById('tableView').style.display  = v === 'table'  ? '' : 'none';
   document.getElementById('kanbanView').style.display = v === 'kanban' ? '' : 'none';
-  document.getElementById('btnTable').classList.toggle('active', v === 'table');
+  document.getElementById('btnTable').classList.toggle('active',  v === 'table');
   document.getElementById('btnKanban').classList.toggle('active', v === 'kanban');
   render();
 }
 
-// ── Modal ────────────────────────────────────────────────────────────────────
+// ── Modal ─────────────────────────────────────────────────────────────────────
 function openModal(id) {
   document.getElementById('modalTitle').textContent = id ? 'Edit Application' : 'Add Application';
   document.getElementById('editId').value = id || '';
   const today = new Date().toISOString().split('T')[0];
-
   if (id) {
     const row = data.find(d => d.id === id);
     if (!row) return;
     document.getElementById('fCompany').value = row.company;
-    document.getElementById('fRole').value = row.role;
-    document.getElementById('fApplied').value = row.applied && row.applied.match(/^\d{4}-\d{2}-\d{2}/) ? row.applied.slice(0,10) : today;
-    document.getElementById('fStage').value = row.stage;
+    document.getElementById('fRole').value    = row.role;
+    document.getElementById('fApplied').value = (row.applied||'').slice(0,10) || today;
+    document.getElementById('fStage').value   = row.stage;
     document.getElementById('fContact').value = row.hmContact;
-    document.getElementById('fNotes').value = row.notes;
+    document.getElementById('fNotes').value   = row.notes;
   } else {
     document.getElementById('fCompany').value = '';
-    document.getElementById('fRole').value = '';
+    document.getElementById('fRole').value    = '';
     document.getElementById('fApplied').value = today;
-    document.getElementById('fStage').value = 'Applied';
+    document.getElementById('fStage').value   = 'Applied';
     document.getElementById('fContact').value = '';
-    document.getElementById('fNotes').value = '';
+    document.getElementById('fNotes').value   = '';
   }
   document.getElementById('modalOverlay').classList.add('open');
-  document.getElementById('fCompany').focus();
+  setTimeout(() => document.getElementById('fCompany').focus(), 50);
 }
 
-function closeModal() {
-  document.getElementById('modalOverlay').classList.remove('open');
-}
-
-function handleOverlayClick(e) {
-  if (e.target === document.getElementById('modalOverlay')) closeModal();
-}
+function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
+function handleOverlayClick(e) { if (e.target === document.getElementById('modalOverlay')) closeModal(); }
 
 function saveEntry() {
   const company = document.getElementById('fCompany').value.trim();
-  const role = document.getElementById('fRole').value.trim();
   if (!company) { document.getElementById('fCompany').focus(); return; }
-
   const id = document.getElementById('editId').value;
   const entry = {
     id: id ? +id : nextId++,
     company,
-    role,
-    applied: document.getElementById('fApplied').value || new Date().toISOString().split('T')[0],
-    stage: document.getElementById('fStage').value,
+    role:      document.getElementById('fRole').value.trim(),
+    applied:   document.getElementById('fApplied').value || new Date().toISOString().split('T')[0],
+    stage:     document.getElementById('fStage').value,
     hmContact: document.getElementById('fContact').value.trim(),
-    notes: document.getElementById('fNotes').value.trim()
+    notes:     document.getElementById('fNotes').value.trim()
   };
-
   if (id) {
     const idx = data.findIndex(d => d.id === +id);
     data[idx] = entry;
@@ -1035,7 +1200,6 @@ function saveEntry() {
     data.unshift(entry);
     toast('Application added', 'green');
   }
-
   save();
   closeModal();
   applyFilters();
@@ -1049,22 +1213,21 @@ function deleteEntry(id) {
   toast('Deleted');
 }
 
-// ── Data Menu ────────────────────────────────────────────────────────────────
+// ── Data Menu ─────────────────────────────────────────────────────────────────
 function toggleDataMenu(e) {
   e.stopPropagation();
   document.getElementById('dataMenu').classList.toggle('open');
 }
 document.addEventListener('click', () => document.getElementById('dataMenu').classList.remove('open'));
 
-// ── Export ───────────────────────────────────────────────────────────────────
+// ── Export ────────────────────────────────────────────────────────────────────
 function exportJSON() {
   document.getElementById('dataMenu').classList.remove('open');
-  const json = JSON.stringify(data, null, 2);
   const a = document.createElement('a');
-  a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(json);
+  a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(data, null, 2));
   a.download = 'it-pipeline-' + new Date().toISOString().slice(0,10) + '.json';
   a.click();
-  toast('Exported ' + data.length + ' applications as JSON', 'green');
+  toast('Exported ' + data.length + ' applications', 'green');
 }
 
 function exportCSV() {
@@ -1075,15 +1238,14 @@ function exportCSV() {
       .map(v => `"${(v||'').replace(/"/g,'""')}"`)
       .join(',')
   );
-  const csv = [headers.join(','), ...rows].join('\n');
   const a = document.createElement('a');
-  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent([headers.join(','), ...rows].join('\n'));
   a.download = 'it-pipeline-' + new Date().toISOString().slice(0,10) + '.csv';
   a.click();
   toast('Exported ' + data.length + ' rows as CSV');
 }
 
-// ── Import ───────────────────────────────────────────────────────────────────
+// ── Import ────────────────────────────────────────────────────────────────────
 let pendingImport = null;
 let importMode = 'replace';
 
@@ -1097,18 +1259,15 @@ function handleImport(event) {
   const file = event.target.files[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = function(e) {
+  reader.onload = e => {
     try {
       const parsed = JSON.parse(e.target.result);
-      if (!Array.isArray(parsed)) throw new Error('Not an array');
+      if (!Array.isArray(parsed)) throw new Error();
       pendingImport = parsed;
       const newCount = parsed.filter(r => !data.find(d => d.id === r.id)).length;
-      const updateCount = parsed.filter(r => data.find(d => d.id === r.id)).length;
       document.getElementById('importSummary').innerHTML =
-        `<strong>${parsed.length} applications</strong> found in the file &nbsp;·&nbsp; ` +
-        `you currently have <strong>${data.length}</strong>.<br>` +
-        `<span style="color:var(--text3);font-size:12px;margin-top:4px;display:block">` +
-        `${newCount} new entries &nbsp;·&nbsp; ${updateCount} existing entries</span>`;
+        `<strong>${parsed.length} applications</strong> in the file · you currently have <strong>${data.length}</strong>.<br>
+         <span style="color:var(--text3);font-size:12px;margin-top:4px;display:block">${newCount} new entries not in current data</span>`;
       selectImportMode('replace');
       document.getElementById('importOverlay').classList.add('open');
     } catch {
@@ -1121,7 +1280,7 @@ function handleImport(event) {
 function selectImportMode(mode) {
   importMode = mode;
   document.getElementById('optReplace').classList.toggle('selected', mode === 'replace');
-  document.getElementById('optMerge').classList.toggle('selected', mode === 'merge');
+  document.getElementById('optMerge').classList.toggle('selected',   mode === 'merge');
 }
 
 function confirmImport() {
@@ -1129,28 +1288,21 @@ function confirmImport() {
   if (importMode === 'replace') {
     data = pendingImport;
   } else {
-    const existingIds = new Set(data.map(d => d.id));
-    const newEntries = pendingImport.filter(r => !existingIds.has(r.id));
-    data = [...data, ...newEntries];
+    const ids = new Set(data.map(d => d.id));
+    data = [...data, ...pendingImport.filter(r => !ids.has(r.id))];
   }
   nextId = Math.max(...data.map(d => d.id), 0) + 1;
   save();
   closeImportModal();
   applyFilters();
-  const verb = importMode === 'replace' ? 'Replaced with' : 'Merged —';
-  toast(`${verb} ${data.length} applications loaded`, 'green');
+  toast(`${importMode === 'replace' ? 'Replaced with' : 'Merged —'} ${data.length} applications`, 'green');
   pendingImport = null;
 }
 
-function closeImportModal() {
-  document.getElementById('importOverlay').classList.remove('open');
-}
+function closeImportModal() { document.getElementById('importOverlay').classList.remove('open'); }
+function handleImportOverlayClick(e) { if (e.target === document.getElementById('importOverlay')) closeImportModal(); }
 
-function handleImportOverlayClick(e) {
-  if (e.target === document.getElementById('importOverlay')) closeImportModal();
-}
-
-// ── Utilities ────────────────────────────────────────────────────────────────
+// ── Utilities ─────────────────────────────────────────────────────────────────
 function esc(s) {
   return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
@@ -1164,7 +1316,6 @@ function toast(msg, type) {
   toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
 }
 
-// Keyboard shortcut: Escape to close modal
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') { closeModal(); closeImportModal(); }
   if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
@@ -1173,9 +1324,8 @@ document.addEventListener('keydown', e => {
   }
 });
 
-// ── Init ─────────────────────────────────────────────────────────────────────
-load();
-applyFilters();
+// ── Go ────────────────────────────────────────────────────────────────────────
+init();
 </script>
 </body>
 </html>
