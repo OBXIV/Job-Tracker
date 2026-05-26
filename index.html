@@ -143,15 +143,34 @@
     .setup-connect-btn:hover { background: var(--primary-dark); }
     .setup-connect-btn:disabled { opacity: .6; cursor: not-allowed; }
     .setup-footer { text-align: center; font-size: 12px; color: var(--text3); margin-top: 14px; }
-    .setup-divider {
-      text-align: center; color: var(--text3); font-size: 12px;
-      margin: 16px 0; position: relative;
+
+    /* ── Setup success state ── */
+    .setup-success { display: flex; flex-direction: column; align-items: center; text-align: center; }
+    .success-icon { font-size: 52px; margin-bottom: 16px; }
+    .setup-success h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+    .setup-success .success-sub { color: var(--text2); font-size: 14px; line-height: 1.6; margin-bottom: 28px; }
+    .bake-box {
+      width: 100%; text-align: left;
+      background: #f0fdf4; border: 1px solid #86efac;
+      border-radius: 12px; padding: 18px 20px;
+      margin-bottom: 16px;
     }
-    .setup-divider::before {
-      content: ''; position: absolute; left: 0; top: 50%;
-      width: 100%; height: 1px; background: var(--border);
+    .bake-box-title { font-weight: 700; font-size: 14px; color: #15803d; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+    .bake-box-desc { font-size: 13px; color: #166534; line-height: 1.55; }
+    .badge-rec {
+      background: #dcfce7; color: #15803d;
+      border-radius: 20px; padding: 2px 8px;
+      font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em;
     }
-    .setup-divider span { background: #fff; padding: 0 12px; position: relative; }
+    .btn-secondary {
+      width: 100%; padding: 11px;
+      background: transparent; color: var(--text2);
+      border: 1px solid var(--border2); border-radius: 10px;
+      font-size: 14px; font-weight: 500;
+      cursor: pointer; font-family: inherit;
+      transition: all .15s; margin-top: 8px;
+    }
+    .btn-secondary:hover { background: var(--surface2); color: var(--text); }
 
     /* ── Sync banner ── */
     .sync-banner {
@@ -642,6 +661,11 @@
           <span>Import JSON<span class="menu-desc">Restore a backup file</span></span>
         </button>
         <hr class="data-menu-divider">
+        <button class="data-menu-item" onclick="downloadBaked()">
+          <span class="menu-icon">⬇</span>
+          <span>Download baked index.html<span class="menu-desc">Config embedded · for GitHub Pages</span></span>
+        </button>
+        <hr class="data-menu-divider">
         <button class="data-menu-item danger" onclick="resetConfig()">
           <span class="menu-icon">⚙️</span>
           <span>Change Firebase Config</span>
@@ -844,6 +868,9 @@ const INITIAL_DATA = [
 
 const STAGES = ["Applied","HM Outreach","Phone Screen","Interview","Final Round","Offer","Rejected","Withdrawn"];
 
+// ── Baked-in Firebase config (null = not yet baked; set by downloadBaked()) ──
+const FIREBASE_CONFIG = null;
+
 // ── App State ─────────────────────────────────────────────────────────────────
 let data = [];
 let filtered = [];
@@ -855,11 +882,13 @@ let db = null;
 
 // ── Firebase Setup ────────────────────────────────────────────────────────────
 function getSavedConfig() {
+  // Priority 1: config baked into the file itself (works for every browser automatically)
+  if (FIREBASE_CONFIG && FIREBASE_CONFIG.apiKey) return FIREBASE_CONFIG;
+  // Priority 2: config saved in this browser's localStorage (fallback)
   try { return JSON.parse(localStorage.getItem('fb-config') || 'null'); } catch { return null; }
 }
 
 function parseConfig(text) {
-  // Extract the {...} object from whatever the user pasted
   const match = text.match(/\{[\s\S]*\}/);
   if (!match) return null;
   try { return new Function('return (' + match[0] + ')')(); } catch { return null; }
@@ -867,23 +896,19 @@ function parseConfig(text) {
 
 function showSetupError(msg) {
   const el = document.getElementById('setupError');
-  el.textContent = msg;
-  el.classList.add('show');
+  el.textContent = msg; el.classList.add('show');
 }
-
 function clearSetupError() {
   document.getElementById('setupError').classList.remove('show');
 }
 
 function showSyncBanner(state, msg) {
-  const banner = document.getElementById('syncBanner');
+  const banner  = document.getElementById('syncBanner');
   const spinner = document.getElementById('syncSpinner');
-  const msgEl = document.getElementById('syncMsg');
   banner.className = 'sync-banner ' + state;
   spinner.style.display = state === 'connecting' ? 'inline-block' : 'none';
-  msgEl.textContent = msg;
+  document.getElementById('syncMsg').textContent = msg;
 }
-
 function hideSyncBanner() {
   document.getElementById('syncBanner').className = 'sync-banner';
 }
@@ -910,12 +935,10 @@ async function handleConnect() {
   try {
     if (!firebase.apps.length) firebase.initializeApp(config);
     db = firebase.database();
-    // Quick connection test
     await db.ref('.info/connected').once('value');
-    // Save config and hide setup
+    // Save to localStorage as fallback, then show the "bake it in" success screen
     localStorage.setItem('fb-config', JSON.stringify(config));
-    document.getElementById('setupOverlay').classList.add('hidden');
-    startListening();
+    showSetupSuccess(config);
   } catch (e) {
     btn.textContent = 'Connect & Sync →';
     btn.disabled = false;
@@ -923,21 +946,67 @@ async function handleConnect() {
   }
 }
 
+function showSetupSuccess(config) {
+  document.querySelector('.setup-card').innerHTML = `
+    <div class="setup-success">
+      <div class="success-icon">🎉</div>
+      <h2>Connected!</h2>
+      <p class="success-sub">Firebase is connected and your data will sync across devices automatically.</p>
+
+      <div class="bake-box">
+        <div class="bake-box-title">⚡ One more step <span class="badge-rec">Recommended</span></div>
+        <div class="bake-box-desc">
+          Download the updated <strong>index.html</strong> below — it has your Firebase config baked in.
+          Re-upload it to GitHub Pages <em>once</em>, and every browser on every device will connect
+          automatically from now on. No setup screen, no pasting config again.
+        </div>
+      </div>
+
+      <button class="setup-connect-btn" onclick="downloadBaked()">⬇ Download updated index.html</button>
+      <button class="btn-secondary" onclick="goToApp()">Skip — use this browser only →</button>
+      <p style="font-size:12px;color:var(--text3);margin-top:16px">
+        Either way your data is safe in Firebase. You can always download the baked file later via ⇅ Data menu.
+      </p>
+    </div>`;
+}
+
+function goToApp() {
+  document.getElementById('setupOverlay').classList.add('hidden');
+  startListening();
+}
+
+function downloadBaked() {
+  const config = getSavedConfig();
+  if (!config) { toast('No config found — connect Firebase first'); return; }
+
+  fetch(location.href)
+    .then(r => r.text())
+    .then(html => {
+      const configJS = 'const FIREBASE_CONFIG = ' + JSON.stringify(config, null, 2) + ';';
+      const updated = html.replace('const FIREBASE_CONFIG = null;', configJS);
+      if (updated === html) {
+        toast('Could not update file — re-download the original index.html and try again');
+        return;
+      }
+      const a = document.createElement('a');
+      a.href = 'data:text/html;charset=utf-8,' + encodeURIComponent(updated);
+      a.download = 'index.html';
+      a.click();
+      toast('Downloaded! Upload to GitHub Pages to activate on all browsers.', 'green');
+    })
+    .catch(() => toast('Download failed — make sure you\'re on the GitHub Pages URL'));
+}
+
 function resetConfig() {
   document.getElementById('dataMenu').classList.remove('open');
-  if (!confirm('This will disconnect from Firebase and show the setup screen. Your data in Firebase is safe.\n\nContinue?')) return;
+  if (!confirm('This will show the setup screen again. Your Firebase data is safe.\n\nContinue?')) return;
   localStorage.removeItem('fb-config');
   if (db) { db.ref('pipeline').off(); db = null; }
-  document.getElementById('configInput').value = '';
-  clearSetupError();
-  document.getElementById('connectBtn').textContent = 'Connect & Sync →';
-  document.getElementById('connectBtn').disabled = false;
-  document.getElementById('setupOverlay').classList.remove('hidden');
+  location.reload(); // reload so FIREBASE_CONFIG baked check also re-runs cleanly
 }
 
 function startListening() {
-  showSyncBanner('connecting', 'Connecting to Firebase…');
-
+  showSyncBanner('connecting', 'Syncing with Firebase…');
   db.ref('pipeline').on('value', snapshot => {
     hideSyncBanner();
     const val = snapshot.val();
@@ -945,7 +1014,6 @@ function startListening() {
       data = val;
       nextId = Math.max(...data.map(d => d.id), 0) + 1;
     } else {
-      // First time ever — seed Firebase with the initial dataset
       data = [...INITIAL_DATA];
       nextId = 1000;
       db.ref('pipeline').set(data);
@@ -966,8 +1034,7 @@ function save() {
 function init() {
   const config = getSavedConfig();
   if (!config) {
-    // Show setup overlay — render a blank app behind it
-    applyFilters();
+    applyFilters(); // render empty app behind setup overlay
     return;
   }
   try {
@@ -976,7 +1043,6 @@ function init() {
     document.getElementById('setupOverlay').classList.add('hidden');
     startListening();
   } catch (e) {
-    // Saved config is bad — show setup
     localStorage.removeItem('fb-config');
     applyFilters();
   }
