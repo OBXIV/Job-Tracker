@@ -50,9 +50,16 @@ function parseArgs(argv) {
   const args = {};
   for (let i = 0; i < argv.length; i++) {
     if (argv[i].startsWith('--')) {
-      const key = argv[i].slice(2);
-      const val = argv[i + 1] && !argv[i + 1].startsWith('--') ? argv[++i] : true;
-      args[key] = val;
+      const raw = argv[i].slice(2);
+      if (raw.includes('=')) {
+        // --flag=value
+        const eq = raw.indexOf('=');
+        args[raw.slice(0, eq)] = raw.slice(eq + 1);
+      } else {
+        // --flag value
+        const val = argv[i + 1] && !argv[i + 1].startsWith('--') ? argv[++i] : true;
+        args[raw] = val;
+      }
     }
   }
   return args;
