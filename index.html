@@ -149,28 +149,6 @@
     .success-icon { font-size: 52px; margin-bottom: 16px; }
     .setup-success h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
     .setup-success .success-sub { color: var(--text2); font-size: 14px; line-height: 1.6; margin-bottom: 28px; }
-    .bake-box {
-      width: 100%; text-align: left;
-      background: #f0fdf4; border: 1px solid #86efac;
-      border-radius: 12px; padding: 18px 20px;
-      margin-bottom: 16px;
-    }
-    .bake-box-title { font-weight: 700; font-size: 14px; color: #15803d; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
-    .bake-box-desc { font-size: 13px; color: #166534; line-height: 1.55; }
-    .badge-rec {
-      background: #dcfce7; color: #15803d;
-      border-radius: 20px; padding: 2px 8px;
-      font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em;
-    }
-    .btn-secondary {
-      width: 100%; padding: 11px;
-      background: transparent; color: var(--text2);
-      border: 1px solid var(--border2); border-radius: 10px;
-      font-size: 14px; font-weight: 500;
-      cursor: pointer; font-family: inherit;
-      transition: all .15s; margin-top: 8px;
-    }
-    .btn-secondary:hover { background: var(--surface2); color: var(--text); }
 
     /* ── Sync banner ── */
     .sync-banner {
@@ -289,32 +267,6 @@
     .view-toggle button.active { background: var(--primary); color: #fff; }
     .view-toggle button:not(.active):hover { background: var(--surface2); }
     .toolbar-right { margin-left: auto; display: flex; gap: 8px; }
-
-    /* ── Data Menu ── */
-    .data-menu-wrap { position: relative; }
-    .data-menu {
-      position: absolute; right: 0; top: calc(100% + 6px);
-      background: var(--surface);
-      border: 1px solid var(--border2);
-      border-radius: 10px;
-      box-shadow: 0 8px 24px rgba(0,0,0,.12);
-      min-width: 200px;
-      overflow: hidden; z-index: 150; display: none;
-    }
-    .data-menu.open { display: block; }
-    .data-menu-item {
-      display: flex; align-items: center; gap: 10px;
-      padding: 11px 16px; cursor: pointer;
-      font-size: 13px; color: var(--text);
-      transition: background .1s;
-      border: none; background: none; width: 100%; text-align: left; font-family: inherit;
-    }
-    .data-menu-item:hover { background: var(--surface2); }
-    .data-menu-item.danger { color: #ef4444; }
-    .data-menu-item.danger:hover { background: #fef2f2; }
-    .data-menu-item .menu-icon { font-size: 15px; width: 20px; text-align: center; }
-    .data-menu-item .menu-desc { font-size: 11px; color: var(--text3); display: block; }
-    .data-menu-divider { border: none; border-top: 1px solid var(--border); margin: 4px 0; }
 
     /* ── Table ── */
     .view-container { padding: 0 24px 32px; }
@@ -443,16 +395,6 @@
       border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59,130,246,.1);
     }
     textarea { resize: vertical; min-height: 72px; }
-
-    /* ── Import options ── */
-    .import-option {
-      border: 2px solid var(--border); border-radius: 10px; padding: 14px 16px;
-      cursor: pointer; transition: border-color .15s, background .15s;
-    }
-    .import-option:hover { border-color: var(--primary); background: var(--applied-bg); }
-    .import-option.selected { border-color: var(--primary); background: var(--applied-bg); }
-    .import-option-title { font-weight: 600; font-size: 14px; margin-bottom: 3px; }
-    .import-option-desc { font-size: 12px; color: var(--text2); line-height: 1.4; }
 
     /* ── Table footer ── */
     .table-footer {
@@ -644,34 +586,6 @@
       <button id="btnTable" class="active" onclick="setView('table')">☰ Table</button>
       <button id="btnKanban" onclick="setView('kanban')">⊞ Kanban</button>
     </div>
-    <div class="data-menu-wrap" id="dataMenuWrap">
-      <button class="btn" onclick="toggleDataMenu(event)">⇅ Data ▾</button>
-      <div class="data-menu" id="dataMenu">
-        <button class="data-menu-item" onclick="exportJSON()">
-          <span class="menu-icon">↓</span>
-          <span>Export JSON<span class="menu-desc">Backup · re-importable</span></span>
-        </button>
-        <button class="data-menu-item" onclick="exportCSV()">
-          <span class="menu-icon">↓</span>
-          <span>Export CSV<span class="menu-desc">For Numbers or Excel</span></span>
-        </button>
-        <hr class="data-menu-divider">
-        <button class="data-menu-item" onclick="triggerImport()">
-          <span class="menu-icon">↑</span>
-          <span>Import JSON<span class="menu-desc">Restore a backup file</span></span>
-        </button>
-        <hr class="data-menu-divider">
-        <button class="data-menu-item" onclick="downloadBaked()">
-          <span class="menu-icon">⬇</span>
-          <span>Download baked index.html<span class="menu-desc">Config embedded · for GitHub Pages</span></span>
-        </button>
-        <hr class="data-menu-divider">
-        <button class="data-menu-item danger" onclick="resetConfig()">
-          <span class="menu-icon">⚙️</span>
-          <span>Change Firebase Config</span>
-        </button>
-      </div>
-    </div>
   </div>
 </div>
 
@@ -680,9 +594,6 @@
   <div id="tableView"></div>
   <div id="kanbanView" style="display:none"></div>
 </div>
-
-<!-- Hidden file input -->
-<input type="file" id="importInput" accept=".json" style="display:none" onchange="handleImport(event)">
 
 <!-- Add/Edit Modal -->
 <div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
@@ -734,33 +645,6 @@
     <div class="modal-footer">
       <button class="btn" onclick="closeModal()">Cancel</button>
       <button class="btn primary" onclick="saveEntry()">Save</button>
-    </div>
-  </div>
-</div>
-
-<!-- Import Confirm Modal -->
-<div class="modal-overlay" id="importOverlay" onclick="handleImportOverlayClick(event)">
-  <div class="modal" style="width:480px">
-    <div class="modal-header">
-      <div class="modal-title">Import Data</div>
-      <button class="icon-btn" onclick="closeImportModal()" style="font-size:20px">×</button>
-    </div>
-    <div class="modal-body">
-      <p id="importSummary" style="color:var(--text2);font-size:14px;line-height:1.5"></p>
-      <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px">
-        <div class="import-option selected" id="optReplace" onclick="selectImportMode('replace')">
-          <div class="import-option-title">Replace All</div>
-          <div class="import-option-desc">Wipe current data and load the imported file. Use when the file is your most up-to-date copy.</div>
-        </div>
-        <div class="import-option" id="optMerge" onclick="selectImportMode('merge')">
-          <div class="import-option-title">Merge</div>
-          <div class="import-option-desc">Keep current data and add any new entries from the file (matched by ID).</div>
-        </div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn" onclick="closeImportModal()">Cancel</button>
-      <button class="btn primary" onclick="confirmImport()">Import</button>
     </div>
   </div>
 </div>
@@ -868,7 +752,7 @@ const INITIAL_DATA = [
 
 const STAGES = ["Applied","HM Outreach","Phone Screen","Interview","Final Round","Offer","Rejected","Withdrawn"];
 
-// ── Baked-in Firebase config (null = not yet baked; set by downloadBaked()) ──
+// ── Firebase config (baked in) ──
 const FIREBASE_CONFIG = {
   "apiKey": "AIzaSyA4GcqtS3MhHPWtqOlw25jfQQdrhmNe_Ig",
   "authDomain": "job-tracker-f6ed5.firebaseapp.com",
@@ -960,57 +844,13 @@ function showSetupSuccess(config) {
       <div class="success-icon">🎉</div>
       <h2>Connected!</h2>
       <p class="success-sub">Firebase is connected and your data will sync across devices automatically.</p>
-
-      <div class="bake-box">
-        <div class="bake-box-title">⚡ One more step <span class="badge-rec">Recommended</span></div>
-        <div class="bake-box-desc">
-          Download the updated <strong>index.html</strong> below — it has your Firebase config baked in.
-          Re-upload it to GitHub Pages <em>once</em>, and every browser on every device will connect
-          automatically from now on. No setup screen, no pasting config again.
-        </div>
-      </div>
-
-      <button class="setup-connect-btn" onclick="downloadBaked()">⬇ Download updated index.html</button>
-      <button class="btn-secondary" onclick="goToApp()">Skip — use this browser only →</button>
-      <p style="font-size:12px;color:var(--text3);margin-top:16px">
-        Either way your data is safe in Firebase. You can always download the baked file later via ⇅ Data menu.
-      </p>
+      <button class="setup-connect-btn" onclick="goToApp()">Go to App →</button>
     </div>`;
 }
 
 function goToApp() {
   document.getElementById('setupOverlay').classList.add('hidden');
   startListening();
-}
-
-function downloadBaked() {
-  const config = getSavedConfig();
-  if (!config) { toast('No config found — connect Firebase first'); return; }
-
-  fetch(location.href)
-    .then(r => r.text())
-    .then(html => {
-      const configJS = 'const FIREBASE_CONFIG = ' + JSON.stringify(config, null, 2) + ';';
-      const updated = html.replace('const FIREBASE_CONFIG = null;', configJS);
-      if (updated === html) {
-        toast('Could not update file — re-download the original index.html and try again');
-        return;
-      }
-      const a = document.createElement('a');
-      a.href = 'data:text/html;charset=utf-8,' + encodeURIComponent(updated);
-      a.download = 'index.html';
-      a.click();
-      toast('Downloaded! Upload to GitHub Pages to activate on all browsers.', 'green');
-    })
-    .catch(() => toast('Download failed — make sure you\'re on the GitHub Pages URL'));
-}
-
-function resetConfig() {
-  document.getElementById('dataMenu').classList.remove('open');
-  if (!confirm('This will show the setup screen again. Your Firebase data is safe.\n\nContinue?')) return;
-  localStorage.removeItem('fb-config');
-  if (db) { db.ref('pipeline').off(); db = null; }
-  location.reload(); // reload so FIREBASE_CONFIG baked check also re-runs cleanly
 }
 
 function startListening() {
@@ -1287,95 +1127,6 @@ function deleteEntry(id) {
   toast('Deleted');
 }
 
-// ── Data Menu ─────────────────────────────────────────────────────────────────
-function toggleDataMenu(e) {
-  e.stopPropagation();
-  document.getElementById('dataMenu').classList.toggle('open');
-}
-document.addEventListener('click', () => document.getElementById('dataMenu').classList.remove('open'));
-
-// ── Export ────────────────────────────────────────────────────────────────────
-function exportJSON() {
-  document.getElementById('dataMenu').classList.remove('open');
-  const a = document.createElement('a');
-  a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(data, null, 2));
-  a.download = 'it-pipeline-' + new Date().toISOString().slice(0,10) + '.json';
-  a.click();
-  toast('Exported ' + data.length + ' applications', 'green');
-}
-
-function exportCSV() {
-  document.getElementById('dataMenu').classList.remove('open');
-  const headers = ['#','Company','Role','Applied','Stage','HM Contact','Notes'];
-  const rows = data.map(r =>
-    [r.id, r.company, r.role, r.applied, r.stage, r.hmContact, r.notes]
-      .map(v => `"${(v||'').replace(/"/g,'""')}"`)
-      .join(',')
-  );
-  const a = document.createElement('a');
-  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent([headers.join(','), ...rows].join('\n'));
-  a.download = 'it-pipeline-' + new Date().toISOString().slice(0,10) + '.csv';
-  a.click();
-  toast('Exported ' + data.length + ' rows as CSV');
-}
-
-// ── Import ────────────────────────────────────────────────────────────────────
-let pendingImport = null;
-let importMode = 'replace';
-
-function triggerImport() {
-  document.getElementById('dataMenu').classList.remove('open');
-  document.getElementById('importInput').value = '';
-  document.getElementById('importInput').click();
-}
-
-function handleImport(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    try {
-      const parsed = JSON.parse(e.target.result);
-      if (!Array.isArray(parsed)) throw new Error();
-      pendingImport = parsed;
-      const newCount = parsed.filter(r => !data.find(d => d.id === r.id)).length;
-      document.getElementById('importSummary').innerHTML =
-        `<strong>${parsed.length} applications</strong> in the file · you currently have <strong>${data.length}</strong>.<br>
-         <span style="color:var(--text3);font-size:12px;margin-top:4px;display:block">${newCount} new entries not in current data</span>`;
-      selectImportMode('replace');
-      document.getElementById('importOverlay').classList.add('open');
-    } catch {
-      toast('Could not read file — make sure it\'s a JSON export from this app');
-    }
-  };
-  reader.readAsText(file);
-}
-
-function selectImportMode(mode) {
-  importMode = mode;
-  document.getElementById('optReplace').classList.toggle('selected', mode === 'replace');
-  document.getElementById('optMerge').classList.toggle('selected',   mode === 'merge');
-}
-
-function confirmImport() {
-  if (!pendingImport) return;
-  if (importMode === 'replace') {
-    data = pendingImport;
-  } else {
-    const ids = new Set(data.map(d => d.id));
-    data = [...data, ...pendingImport.filter(r => !ids.has(r.id))];
-  }
-  nextId = Math.max(...data.map(d => d.id), 0) + 1;
-  save();
-  closeImportModal();
-  applyFilters();
-  toast(`${importMode === 'replace' ? 'Replaced with' : 'Merged —'} ${data.length} applications`, 'green');
-  pendingImport = null;
-}
-
-function closeImportModal() { document.getElementById('importOverlay').classList.remove('open'); }
-function handleImportOverlayClick(e) { if (e.target === document.getElementById('importOverlay')) closeImportModal(); }
-
 // ── Utilities ─────────────────────────────────────────────────────────────────
 function esc(s) {
   return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -1391,10 +1142,9 @@ function toast(msg, type) {
 }
 
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { closeModal(); closeImportModal(); }
+  if (e.key === 'Escape') closeModal();
   if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
     if (document.getElementById('modalOverlay').classList.contains('open')) saveEntry();
-    if (document.getElementById('importOverlay').classList.contains('open')) confirmImport();
   }
 });
 
