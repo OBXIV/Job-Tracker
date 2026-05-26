@@ -1,643 +1,209 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quick Add — Job Pipeline Bot</title>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg: #f4f6f9;
-      --surface: #ffffff;
-      --surface2: #f8fafc;
-      --border: #e2e8f0;
-      --border2: #cbd5e1;
-      --text: #1e293b;
-      --text2: #64748b;
-      --text3: #94a3b8;
-      --primary: #3b82f6;
-      --primary-dark: #2563eb;
-      --green: #10b981;
-      --green-bg: #ecfdf5;
-      --red: #ef4444;
-      --red-bg: #fef2f2;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      font-size: 14px;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* ── Header ── */
-    header {
-      background: #1e293b;
-      color: #fff;
-      padding: 0 24px;
-      height: 56px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-shrink: 0;
-    }
-    .header-left { display: flex; align-items: center; gap: 12px; }
-    .header-logo {
-      width: 32px; height: 32px;
-      background: var(--primary);
-      border-radius: 8px;
-      display: grid; place-items: center;
-      font-size: 16px;
-    }
-    header h1 { font-size: 16px; font-weight: 600; }
-    .header-link {
-      color: #94a3b8;
-      font-size: 13px;
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: color .15s;
-    }
-    .header-link:hover { color: #fff; }
-
-    /* ── Main Layout ── */
-    main {
-      flex: 1;
-      padding: 32px 24px;
-      max-width: 680px;
-      width: 100%;
-      margin: 0 auto;
-    }
-
-    .page-title {
-      font-size: 22px;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
-    .page-sub {
-      color: var(--text2);
-      font-size: 14px;
-      margin-bottom: 28px;
-    }
-
-    /* ── Cards ── */
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      overflow: hidden;
-      margin-bottom: 20px;
-    }
-    .card-header {
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .card-header-icon {
-      width: 30px; height: 30px;
-      border-radius: 8px;
-      display: grid; place-items: center;
-      font-size: 15px;
-      flex-shrink: 0;
-    }
-    .icon-ai { background: #f5f3ff; }
-    .icon-form { background: #eff6ff; }
-    .card-header-text { flex: 1; }
-    .card-title { font-size: 14px; font-weight: 600; }
-    .card-desc { font-size: 12px; color: var(--text2); margin-top: 1px; }
-    .card-body { padding: 20px; }
-
-    /* ── AI Paste Zone ── */
-    .ai-textarea {
-      width: 100%;
-      min-height: 110px;
-      padding: 12px;
-      border: 1px solid var(--border2);
-      border-radius: 10px;
-      font-size: 13px;
-      font-family: inherit;
-      color: var(--text);
-      background: var(--surface2);
-      resize: vertical;
-      outline: none;
-      transition: border-color .15s;
-      line-height: 1.6;
-    }
-    .ai-textarea:focus { border-color: var(--primary); background: #fff; }
-    .ai-textarea::placeholder { color: var(--text3); }
-
-    .ai-btn {
-      margin-top: 10px;
-      padding: 10px 20px;
-      background: #7c3aed;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      font-family: inherit;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      transition: background .15s, opacity .15s;
-    }
-    .ai-btn:hover { background: #6d28d9; }
-    .ai-btn:disabled { opacity: .55; cursor: not-allowed; }
-
-    .ai-status {
-      margin-top: 10px;
-      font-size: 13px;
-      display: none;
-      align-items: center;
-      gap: 7px;
-      color: var(--text2);
-    }
-    .ai-status.show { display: flex; }
-    .ai-status.error { color: var(--red); }
-    .ai-status.success { color: var(--green); }
-
-    /* ── Form Fields ── */
-    .form-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-    }
-    .form-group { display: flex; flex-direction: column; gap: 5px; }
-    .form-group.full { grid-column: 1 / -1; }
-    label {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--text2);
-      text-transform: uppercase;
-      letter-spacing: .04em;
-    }
-    input[type=text], input[type=date], select.fselect, textarea.fnotes {
-      padding: 9px 12px;
-      border: 1px solid var(--border2);
-      border-radius: 8px;
-      font-size: 13px;
-      color: var(--text);
-      background: var(--surface);
-      font-family: inherit;
-      outline: none;
-      transition: border-color .15s, box-shadow .15s;
-      width: 100%;
-    }
-    input:focus, select.fselect:focus, textarea.fnotes:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(59,130,246,.1);
-    }
-    textarea.fnotes { resize: vertical; min-height: 72px; line-height: 1.55; }
-
-    .highlight-field {
-      animation: fieldPop .35s ease;
-    }
-    @keyframes fieldPop {
-      0%  { background: #eff6ff; }
-      100% { background: var(--surface); }
-    }
-
-    /* ── Submit Button ── */
-    .submit-row {
-      margin-top: 18px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-    .submit-btn {
-      padding: 11px 28px;
-      background: var(--primary);
-      color: #fff;
-      border: none;
-      border-radius: 9px;
-      font-size: 14px;
-      font-weight: 600;
-      font-family: inherit;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: background .15s;
-    }
-    .submit-btn:hover { background: var(--primary-dark); }
-    .submit-btn:disabled { opacity: .55; cursor: not-allowed; }
-    .clear-btn {
-      padding: 11px 18px;
-      background: transparent;
-      color: var(--text2);
-      border: 1px solid var(--border2);
-      border-radius: 9px;
-      font-size: 14px;
-      font-family: inherit;
-      cursor: pointer;
-      transition: all .15s;
-    }
-    .clear-btn:hover { background: var(--surface2); color: var(--text); }
-
-    /* ── Toast ── */
-    .toast {
-      position: fixed;
-      bottom: 28px; left: 50%; transform: translateX(-50%) translateY(10px);
-      background: #1e293b;
-      color: #fff;
-      padding: 10px 20px;
-      border-radius: 10px;
-      font-size: 13px;
-      font-weight: 500;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity .2s, transform .2s;
-      z-index: 999;
-      white-space: nowrap;
-    }
-    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-    .toast.green { background: #064e3b; }
-    .toast.red { background: #7f1d1d; }
-
-    /* ── DB Status dot ── */
-    .db-status {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 12px;
-      color: var(--text3);
-    }
-    .db-dot {
-      width: 7px; height: 7px;
-      border-radius: 50%;
-      background: var(--text3);
-      flex-shrink: 0;
-    }
-    .db-dot.connected { background: var(--green); }
-    .db-dot.error { background: var(--red); }
-
-    /* ── Spinner ── */
-    .spin {
-      width: 14px; height: 14px;
-      border: 2px solid currentColor;
-      border-top-color: transparent;
-      border-radius: 50%;
-      display: inline-block;
-      animation: spin .65s linear infinite;
-      flex-shrink: 0;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* ── Stage Select Colors ── */
-    .stage-Applied     { color: #3b82f6; }
-    .stage-HM-Outreach { color: #8b5cf6; }
-    .stage-Phone-Screen { color: #b45309; }
-    .stage-Interview   { color: #c2410c; }
-    .stage-Final-Round { color: #b91c1c; }
-    .stage-Offer       { color: #047857; }
-    .stage-Rejected    { color: #6b7280; }
-    .stage-Withdrawn   { color: #94a3b8; }
-
-    @media (max-width: 500px) {
-      .form-grid { grid-template-columns: 1fr; }
-      .form-group.full { grid-column: 1; }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quick Add — Job Pipeline Bot</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:#f4f6f9;color:#1e293b;font-size:14px;min-height:100vh;display:flex;flex-direction:column}
+header{background:#1e293b;color:#fff;padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.hdr-left{display:flex;align-items:center;gap:12px}
+.hdr-logo{width:32px;height:32px;background:#3b82f6;border-radius:8px;display:grid;place-items:center;font-size:16px}
+header h1{font-size:16px;font-weight:600}
+.hdr-link{color:#94a3b8;font-size:13px;text-decoration:none;transition:color .15s}
+.hdr-link:hover{color:#fff}
+main{flex:1;padding:32px 24px;max-width:640px;width:100%;margin:0 auto}
+.page-title{font-size:20px;font-weight:700;margin-bottom:4px}
+.page-sub{color:#64748b;font-size:13px;margin-bottom:24px}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;margin-bottom:16px;overflow:hidden}
+.card-head{padding:13px 18px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;gap:10px}
+.ch-icon{width:28px;height:28px;border-radius:7px;display:grid;place-items:center;font-size:14px;flex-shrink:0}
+.blue-icon{background:#eff6ff}
+.ch-text{flex:1}
+.ch-title{font-size:13px;font-weight:600}
+.ch-sub{font-size:11px;color:#64748b;margin-top:1px}
+.db-pill{display:flex;align-items:center;gap:5px;font-size:11px;color:#94a3b8}
+.db-dot{width:7px;height:7px;border-radius:50%;background:#cbd5e1;flex-shrink:0;transition:background .3s}
+.db-dot.ok{background:#10b981}
+.db-dot.err{background:#ef4444}
+.card-body{padding:18px}
+.prefill-banner{background:#eff6ff;border:1px solid #bfdbfe;border-radius:9px;padding:10px 14px;font-size:13px;color:#1d4ed8;margin-bottom:16px;display:none;align-items:center;gap:8px}
+.prefill-banner.show{display:flex}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fg.full{grid-column:1/-1}
+.fg label{font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.04em}
+.fg input,.fg select,.fg textarea{padding:9px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;font-family:inherit;color:#1e293b;background:#fff;outline:none;transition:border-color .15s,box-shadow .15s;width:100%}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+.fg textarea{resize:vertical;min-height:72px;line-height:1.55}
+.submit-row{display:flex;align-items:center;gap:10px;margin-top:18px;flex-wrap:wrap}
+button{padding:8px 16px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;font-size:13px;font-family:inherit;font-weight:500;cursor:pointer;transition:all .15s;color:#1e293b;display:inline-flex;align-items:center;gap:6px}
+button:hover{background:#f8fafc}
+button:disabled{opacity:.5;cursor:not-allowed}
+.btn-submit{background:#3b82f6;color:#fff;border-color:#3b82f6;padding:10px 24px;font-size:14px}
+.btn-submit:hover{background:#2563eb;border-color:#2563eb}
+.result{margin-top:14px;padding:11px 14px;border-radius:9px;font-size:13px;display:none;align-items:center;gap:8px}
+.result.show{display:flex}
+.result.ok{background:#ecfdf5;border:1px solid #6ee7b7;color:#064e3b}
+.result.err{background:#fef2f2;border:1px solid #fca5a5;color:#7f1d1d}
+.spin{display:inline-block;width:13px;height:13px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .65s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.instructions{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:18px}
+.instructions h3{font-size:13px;font-weight:600;margin-bottom:10px;color:#1e293b}
+.step{display:flex;gap:12px;padding:8px 0;border-bottom:1px solid #f1f5f9}
+.step:last-child{border-bottom:none}
+.step-num{width:22px;height:22px;background:#3b82f6;color:#fff;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px}
+.step-text{font-size:13px;color:#475569;line-height:1.5}
+.step-text strong{color:#1e293b}
+@media(max-width:480px){.form-grid{grid-template-columns:1fr}.fg.full{grid-column:1}}
+</style>
 </head>
 <body>
-
 <header>
-  <div class="header-left">
-    <div class="header-logo">🤖</div>
+  <div class="hdr-left">
+    <div class="hdr-logo">🤖</div>
     <h1>Quick Add Bot</h1>
   </div>
-  <a class="header-link" href="index.html">← Back to Tracker</a>
+  <a class="hdr-link" href="index.html">← Back to Tracker</a>
 </header>
 
 <main>
-  <div class="page-title">Add a New Application</div>
-  <p class="page-sub">Paste a job posting to auto-fill the fields, or enter details manually.</p>
+  <div class="page-title">Add Application</div>
+  <p class="page-sub">Fields auto-fill when opened via a Claude-generated link, or enter manually.</p>
 
-  <!-- AI Parse Card -->
   <div class="card">
-    <div class="card-header">
-      <div class="card-header-icon icon-ai">✨</div>
-      <div class="card-header-text">
-        <div class="card-title">AI Auto-Fill</div>
-        <div class="card-desc">Paste the job posting or a quick description — Claude will extract the details</div>
+    <div class="card-head">
+      <div class="ch-icon blue-icon">📋</div>
+      <div class="ch-text">
+        <div class="ch-title">Application details</div>
+        <div class="ch-sub">Review and confirm before saving</div>
       </div>
+      <div class="db-pill"><div class="db-dot" id="dbDot"></div><span id="dbLabel">Connecting…</span></div>
     </div>
     <div class="card-body">
-      <textarea
-        class="ai-textarea"
-        id="aiInput"
-        placeholder="Paste a job posting, LinkedIn description, or type something like:&#10;&#10;'Director of IT at Acme Corp in Dallas, TX — $180K, applied today'"
-      ></textarea>
-      <button class="ai-btn" id="aiBtn" onclick="runAI()">
-        <span>✨</span> Parse with AI
-      </button>
-      <div class="ai-status" id="aiStatus">
-        <div class="spin"></div>
-        <span id="aiStatusMsg">Parsing with Claude…</span>
+      <div class="prefill-banner" id="prefillBanner">✨ Pre-filled from Claude — review and save</div>
+      <div class="form-grid">
+        <div class="fg full"><label for="fCompany">Company *</label><input type="text" id="fCompany" placeholder="e.g. Acme Corp" /></div>
+        <div class="fg full"><label for="fRole">Role / Title</label><input type="text" id="fRole" placeholder="e.g. Director of IT" /></div>
+        <div class="fg"><label for="fApplied">Date Applied</label><input type="date" id="fApplied" /></div>
+        <div class="fg">
+          <label for="fStage">Stage</label>
+          <select id="fStage">
+            <option>Applied</option><option>HM Outreach</option><option>Phone Screen</option>
+            <option>Interview</option><option>Final Round</option><option>Offer</option>
+            <option>Rejected</option><option>Withdrawn</option>
+          </select>
+        </div>
+        <div class="fg full"><label for="fContact">HM Contact</label><input type="text" id="fContact" placeholder="Hiring manager name (optional)" /></div>
+        <div class="fg full"><label for="fNotes">Notes</label><textarea id="fNotes" placeholder="Location, salary, source, anything else…"></textarea></div>
       </div>
+      <div class="submit-row">
+        <button class="btn-submit" id="submitBtn" onclick="submitEntry()">＋ Add to Pipeline</button>
+        <button onclick="clearForm()">Clear</button>
+      </div>
+      <div class="result" id="result"></div>
     </div>
   </div>
 
-  <!-- Manual Entry Card -->
-  <div class="card">
-    <div class="card-header">
-      <div class="card-header-icon icon-form">📋</div>
-      <div class="card-header-text">
-        <div class="card-title">Application Details</div>
-        <div class="card-desc">Review AI-filled fields or enter manually</div>
-      </div>
-      <div class="db-status">
-        <div class="db-dot" id="dbDot"></div>
-        <span id="dbLabel">Connecting…</span>
-      </div>
-    </div>
-    <div class="card-body">
-      <div class="form-grid">
-        <div class="form-group full">
-          <label for="fCompany">Company *</label>
-          <input type="text" id="fCompany" placeholder="e.g. Acme Corp" />
-        </div>
-        <div class="form-group full">
-          <label for="fRole">Role / Title</label>
-          <input type="text" id="fRole" placeholder="e.g. Director of IT" />
-        </div>
-        <div class="form-group">
-          <label for="fApplied">Date Applied</label>
-          <input type="date" id="fApplied" />
-        </div>
-        <div class="form-group">
-          <label for="fStage">Stage</label>
-          <select class="fselect" id="fStage">
-            <option value="Applied">Applied</option>
-            <option value="HM Outreach">HM Outreach</option>
-            <option value="Phone Screen">Phone Screen</option>
-            <option value="Interview">Interview</option>
-            <option value="Final Round">Final Round</option>
-            <option value="Offer">Offer</option>
-            <option value="Rejected">Rejected</option>
-            <option value="Withdrawn">Withdrawn</option>
-          </select>
-        </div>
-        <div class="form-group full">
-          <label for="fContact">HM Contact</label>
-          <input type="text" id="fContact" placeholder="Hiring manager name (optional)" />
-        </div>
-        <div class="form-group full">
-          <label for="fNotes">Notes</label>
-          <textarea class="fnotes" id="fNotes" placeholder="Location, salary, source, anything else…"></textarea>
-        </div>
-      </div>
-
-      <div class="submit-row">
-        <button class="submit-btn" id="submitBtn" onclick="submitEntry()">
-          <span>＋</span> Add to Pipeline
-        </button>
-        <button class="clear-btn" onclick="clearForm()">Clear</button>
-      </div>
-    </div>
+  <div class="instructions">
+    <h3>How to use with Claude</h3>
+    <div class="step"><div class="step-num">1</div><div class="step-text">Paste a job posting into <strong>Claude (claude.ai)</strong></div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-text">Claude parses it and gives you a <strong>pre-filled link</strong> to this page</div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-text">Click the link — fields auto-fill — hit <strong>Add to Pipeline</strong></div></div>
   </div>
 </main>
 
-<div class="toast" id="toast"></div>
+<div id="toast" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(10px);background:#1e293b;color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:500;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:999;white-space:nowrap"></div>
 
 <script>
-// ── Firebase Config (same as index.html) ─────────────────────────────────────
-const FIREBASE_CONFIG = {
-  "apiKey": "AIzaSyA4GcqtS3MhHPWtqOlw25jfQQdrhmNe_Ig",
-  "authDomain": "job-tracker-f6ed5.firebaseapp.com",
-  "databaseURL": "https://job-tracker-f6ed5-default-rtdb.firebaseio.com",
-  "projectId": "job-tracker-f6ed5",
-  "storageBucket": "job-tracker-f6ed5.firebasestorage.app",
-  "messagingSenderId": "573780243626",
-  "appId": "1:573780243626:web:8e64ce96722059b7364cd3"
-};
+const DB = 'https://job-tracker-f6ed5-default-rtdb.firebaseio.com/pipeline.json';
 
-const STAGES = ["Applied","HM Outreach","Phone Screen","Interview","Final Round","Offer","Rejected","Withdrawn"];
+// ── Read URL params and pre-fill ──────────────────────────────────────────────
+function loadFromParams() {
+  const p = new URLSearchParams(window.location.search);
+  const map = {company:'fCompany',role:'fRole',applied:'fApplied',stage:'fStage',contact:'fContact',notes:'fNotes'};
+  let filled = false;
+  Object.entries(map).forEach(([param, id]) => {
+    const val = p.get(param);
+    if (val) {
+      document.getElementById(id).value = val;
+      filled = true;
+    }
+  });
+  if (filled) document.getElementById('prefillBanner').classList.add('show');
+}
 
-let db = null;
-let pipelineData = [];
-let nextId = 1000;
-
-// ── Init ──────────────────────────────────────────────────────────────────────
-function init() {
-  // Set today's date as default
-  document.getElementById('fApplied').value = new Date().toISOString().split('T')[0];
-
-  // Connect Firebase
+// ── Firebase connect check ────────────────────────────────────────────────────
+async function initDb() {
   try {
-    if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
-    db = firebase.database();
-    setDbStatus('connecting');
-
-    db.ref('pipeline').once('value', snap => {
-      const val = snap.val();
-      if (val && Array.isArray(val)) {
-        pipelineData = val;
-        nextId = Math.max(...pipelineData.map(d => d.id || 0), 0) + 1;
-      }
-      setDbStatus('connected');
-    }, err => {
-      setDbStatus('error', err.message);
-    });
+    const r = await fetch(DB);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    document.getElementById('dbDot').className = 'db-dot ok';
+    document.getElementById('dbLabel').textContent = 'Firebase connected';
   } catch(e) {
-    setDbStatus('error', e.message);
+    document.getElementById('dbDot').className = 'db-dot err';
+    document.getElementById('dbLabel').textContent = 'DB error';
   }
-}
-
-function setDbStatus(state, msg) {
-  const dot   = document.getElementById('dbDot');
-  const label = document.getElementById('dbLabel');
-  if (state === 'connecting') {
-    dot.className = 'db-dot';
-    label.textContent = 'Connecting…';
-  } else if (state === 'connected') {
-    dot.className = 'db-dot connected';
-    label.textContent = 'Firebase connected';
-  } else {
-    dot.className = 'db-dot error';
-    label.textContent = 'DB error';
-    console.error('Firebase error:', msg);
-  }
-}
-
-// ── AI Parse ──────────────────────────────────────────────────────────────────
-async function runAI() {
-  const input = document.getElementById('aiInput').value.trim();
-  if (!input) {
-    showAiStatus('error', '⚠️ Paste a job posting or description first.');
-    return;
-  }
-
-  const btn = document.getElementById('aiBtn');
-  btn.disabled = true;
-  showAiStatus('loading', 'Parsing with Claude…');
-
-  const today = new Date().toISOString().split('T')[0];
-
-  const prompt = `You are a job application data extractor. Extract structured data from the job posting or description below.
-
-Return ONLY a valid JSON object with these exact fields (no markdown, no explanation, no backticks):
-{
-  "company": "Company name or empty string",
-  "role": "Job title/role or empty string",
-  "applied": "Date in YYYY-MM-DD format — use today (${today}) if not specified",
-  "stage": "One of: Applied, HM Outreach, Phone Screen, Interview, Final Round, Offer, Rejected, Withdrawn — default to Applied",
-  "hmContact": "Hiring manager or recruiter name if mentioned, else empty string",
-  "notes": "Location (City, ST format), salary/comp range if mentioned, and any other key details. Keep concise."
-}
-
-Job posting or description:
-${input}`;
-
-  try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
-
-    const data = await response.json();
-    const text = data.content?.map(c => c.text || '').join('').trim();
-
-    if (!text) throw new Error('Empty response from API');
-
-    // Strip markdown fences if present
-    const clean = text.replace(/^```json?\s*/i, '').replace(/```\s*$/, '').trim();
-    const parsed = JSON.parse(clean);
-
-    // Populate fields
-    const fields = ['company','role','applied','stage','hmContact','notes'];
-    fields.forEach(f => {
-      const el = document.getElementById('f' + capitalize(f));
-      if (!el) return;
-      if (parsed[f] !== undefined && parsed[f] !== null && parsed[f] !== '') {
-        el.value = parsed[f];
-        // Flash highlight
-        el.classList.remove('highlight-field');
-        void el.offsetWidth;
-        el.classList.add('highlight-field');
-      }
-    });
-
-    showAiStatus('success', '✓ Fields filled — review and submit when ready');
-    document.getElementById('fCompany').focus();
-
-  } catch(e) {
-    console.error('AI parse error:', e);
-    showAiStatus('error', '⚠️ Parse failed: ' + (e.message || 'Unknown error'));
-  } finally {
-    btn.disabled = false;
-  }
-}
-
-function capitalize(s) {
-  return s.charAt(0).toUpperCase() + s.slice(1);
-}
-
-function showAiStatus(type, msg) {
-  const el  = document.getElementById('aiStatus');
-  const txt = document.getElementById('aiStatusMsg');
-  const spin = el.querySelector('.spin');
-  el.className = 'ai-status show ' + (type === 'error' ? 'error' : type === 'success' ? 'success' : '');
-  spin.style.display = type === 'loading' ? 'inline-block' : 'none';
-  txt.textContent = msg;
 }
 
 // ── Submit ────────────────────────────────────────────────────────────────────
 async function submitEntry() {
   const company = document.getElementById('fCompany').value.trim();
-  if (!company) {
-    document.getElementById('fCompany').focus();
-    toast('Company name is required', 'red');
-    return;
-  }
-  if (!db) {
-    toast('Not connected to Firebase — try refreshing', 'red');
-    return;
-  }
-
+  if (!company) { document.getElementById('fCompany').focus(); return; }
   const btn = document.getElementById('submitBtn');
+  const res = document.getElementById('result');
   btn.disabled = true;
   btn.innerHTML = '<div class="spin"></div> Saving…';
-
-  const entry = {
-    id:        nextId++,
-    company,
-    role:      document.getElementById('fRole').value.trim(),
-    applied:   document.getElementById('fApplied').value || new Date().toISOString().split('T')[0],
-    stage:     document.getElementById('fStage').value,
-    hmContact: document.getElementById('fContact').value.trim(),
-    notes:     document.getElementById('fNotes').value.trim()
-  };
-
+  res.className = 'result';
   try {
-    // Re-fetch latest data to avoid overwriting concurrent changes
-    const snap = await db.ref('pipeline').once('value');
-    const current = snap.val();
-    const arr = (current && Array.isArray(current)) ? current : [];
-
-    // Make sure our id is actually unique
-    const maxId = arr.length ? Math.max(...arr.map(d => d.id || 0)) : 0;
-    if (entry.id <= maxId) entry.id = maxId + 1;
-
+    const r = await fetch(DB);
+    if (!r.ok) throw new Error('Read failed: HTTP ' + r.status);
+    const current = await r.json();
+    const arr = Array.isArray(current) ? current : [];
+    const maxId = arr.length ? Math.max(...arr.map(d => d.id||0)) : 999;
+    const entry = {
+      id: maxId + 1,
+      company,
+      role:      document.getElementById('fRole').value.trim(),
+      applied:   document.getElementById('fApplied').value || new Date().toISOString().split('T')[0],
+      stage:     document.getElementById('fStage').value,
+      hmContact: document.getElementById('fContact').value.trim(),
+      notes:     document.getElementById('fNotes').value.trim()
+    };
     arr.unshift(entry);
-    await db.ref('pipeline').set(arr);
-
-    toast('✓ Added: ' + entry.company + ' — ' + (entry.role || 'No role'), 'green');
-    clearForm();
-
+    const w = await fetch(DB, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(arr)});
+    if (!w.ok) throw new Error('Write failed: HTTP ' + w.status);
+    res.className = 'result show ok';
+    res.innerHTML = '✓ Added <strong>' + entry.company + '</strong>' + (entry.role ? ' — ' + entry.role : '') + ' · ID #' + entry.id;
+    clearForm(true);
+    // Clear URL params so a refresh doesn't re-fill
+    window.history.replaceState({}, '', window.location.pathname);
   } catch(e) {
-    console.error('Save error:', e);
-    toast('Save failed: ' + (e.message || 'Unknown error'), 'red');
-    nextId--; // roll back
+    res.className = 'result show err';
+    res.innerHTML = '⚠ Save failed: ' + (e.message || 'unknown error');
   } finally {
     btn.disabled = false;
-    btn.innerHTML = '<span>＋</span> Add to Pipeline';
+    btn.innerHTML = '＋ Add to Pipeline';
   }
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-function clearForm() {
-  document.getElementById('fCompany').value = '';
-  document.getElementById('fRole').value    = '';
+function clearForm(keepResult) {
+  ['fCompany','fRole','fContact','fNotes'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('fApplied').value = new Date().toISOString().split('T')[0];
-  document.getElementById('fStage').value   = 'Applied';
-  document.getElementById('fContact').value = '';
-  document.getElementById('fNotes').value   = '';
-  document.getElementById('aiInput').value  = '';
-  document.getElementById('aiStatus').className = 'ai-status';
-  document.getElementById('fCompany').focus();
-}
-
-let toastTimer;
-function toast(msg, type) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.className = 'toast show' + (type ? ' ' + type : '');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('show'), 3500);
+  document.getElementById('fStage').value = 'Applied';
+  document.getElementById('prefillBanner').classList.remove('show');
+  if (!keepResult) document.getElementById('result').className = 'result';
 }
 
 document.addEventListener('keydown', e => {
-  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') submitEntry();
+  if ((e.metaKey||e.ctrlKey) && e.key === 'Enter') submitEntry();
 });
 
-init();
+// ── Init ──────────────────────────────────────────────────────────────────────
+document.getElementById('fApplied').value = new Date().toISOString().split('T')[0];
+loadFromParams();
+initDb();
 </script>
 </body>
 </html>
