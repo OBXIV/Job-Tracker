@@ -858,8 +858,12 @@ function startListening() {
   db.ref('pipeline').on('value', snapshot => {
     hideSyncBanner();
     const val = snapshot.val();
-    if (val && Array.isArray(val) && val.length > 0) {
-      data = val;
+    // Firebase SDK may return an object {"0":{...},"1":{...}} instead of a real array
+    const rows = Array.isArray(val)
+      ? val
+      : (val && typeof val === 'object' ? Object.values(val) : null);
+    if (rows && rows.length > 0) {
+      data = rows;
       nextId = Math.max(...data.map(d => d.id), 0) + 1;
     } else {
       data = [...INITIAL_DATA];
