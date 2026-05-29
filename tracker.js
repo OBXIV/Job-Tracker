@@ -328,4 +328,8 @@ async function main() {
   die('Unknown command: ' + command);
 }
 
-main().catch(err => die(err.message || String(err)));
+main()
+  .catch(err => die(err.message || String(err)))
+  .finally(async () => {
+    if (admin.apps.length) await admin.app().delete();
+  });
