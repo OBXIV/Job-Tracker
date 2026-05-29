@@ -1,0 +1,10 @@
+# macOS
+.DS_Store
+
+# Private Firebase Admin credentials
+service-account.json
+*-service-account.json
+firebase-service-account*.json
+
+# Dependencies
+node_modules/

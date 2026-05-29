@@ -1,5 +1,14 @@
 {
   "name": "job-tracker-cli",
-  "version": "1.0.0",
-  "type": "module"
+  "version": "2.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "tracker": "node tracker.js",
+    "add": "node tracker.js add",
+    "search": "node tracker.js search"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.0.0"
+  }
 }
