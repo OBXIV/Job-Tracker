@@ -3,7 +3,7 @@
  * tracker.js - Firebase Admin CLI for Job Pipeline Tracker
  *
  * Commands:
- *   node tracker.js add --company "Acme" --role "IT Director" --notes "..."
+ *   node tracker.js add --company "Acme" --address "123 Main St, Dallas, TX" --website "https://example.com" --role "IT Director" --notes "..."
  *   node tracker.js update --id 106 --stage "Phone Screen" --note "AI phone screen 5/28"
  *   node tracker.js update --company "Apex Systems" --stage "Phone Screen" --note "..."
  *   node tracker.js reject --company "Langham Hall" --note "Rejected via email 5/29"
@@ -153,14 +153,24 @@ function includesText(value, query) {
   return String(value || '').toLowerCase().includes(String(query || '').toLowerCase());
 }
 
+function normalizeWebsite(value) {
+  const clean = String(value || '').trim();
+  if (!clean) return '';
+  if (/^https?:\/\//i.test(clean)) return clean;
+  if (/^[a-z][a-z0-9+.-]*:/i.test(clean)) return '';
+  return 'https://' + clean.replace(/^\/+/, '');
+}
+
 function formatRow(row) {
   const bits = [
     '#' + row.id,
     row.company || '(no company)',
+    row.address ? '(' + row.address + ')' : '',
+    row.website ? '<' + row.website + '>' : '',
     '—',
     row.role || '(no role)',
     '[' + (row.stage || 'Unknown') + ']',
-  ];
+  ].filter(Boolean);
   if (row.applied) bits.push(row.applied);
   if (row.hmContact) bits.push('contact: ' + row.hmContact);
   if (row.notes) bits.push('notes: ' + row.notes);
@@ -178,6 +188,8 @@ function findMatches(rows, args) {
 
   const matches = rows.filter(row => (
     includesText(row.company, company) ||
+    includesText(row.address, company) ||
+    includesText(row.website, company) ||
     includesText(row.role, company) ||
     includesText(row.notes, company) ||
     includesText(row.hmContact, company)
@@ -219,6 +231,8 @@ async function cmdAdd(args) {
   const entry = {
     id: maxId + 1,
     company: String(args.company || '').trim(),
+    address: String(args.address || '').trim(),
+    website: normalizeWebsite(args.website),
     role: String(args.role || '').trim(),
     applied: String(args.applied || today()).trim(),
     stage: normalizeStage(args.stage),
@@ -236,6 +250,8 @@ async function cmdUpdate(args) {
   const entry = chooseOne(findMatches(rows, args), args);
 
   if (args.company && args.setCompany) entry.company = String(args.setCompany).trim();
+  if (args.address !== undefined) entry.address = args.address === true ? '' : String(args.address).trim();
+  if (args.website !== undefined) entry.website = args.website === true ? '' : normalizeWebsite(args.website);
   if (args.role) entry.role = String(args.role).trim();
   if (args.applied) entry.applied = String(args.applied).trim();
   if (args.stage) entry.stage = normalizeStage(args.stage);
@@ -265,10 +281,12 @@ function shortDate() {
 
 async function cmdSearch(args) {
   const rows = await readPipeline();
-  const query = args.query || args.q || args.company || args.role || args.notes;
-  if (!query) die('Provide --query, --company, --role, or --notes.');
+  const query = args.query || args.q || args.company || args.address || args.website || args.role || args.notes;
+  if (!query) die('Provide --query, --company, --address, --website, --role, or --notes.');
   const matches = rows.filter(row => (
     includesText(row.company, query) ||
+    includesText(row.address, query) ||
+    includesText(row.website, query) ||
     includesText(row.role, query) ||
     includesText(row.notes, query) ||
     includesText(row.hmContact, query)
@@ -296,7 +314,7 @@ function usage() {
   console.log([
     '',
     'Usage:',
-    '  node tracker.js add --company \"Acme\" --role \"IT Director\" [--applied YYYY-MM-DD] [--stage Applied] [--contact \"Name\"] [--notes \"...\"]',
+    '  node tracker.js add --company \"Acme\" [--address \"HQ address\"] [--website \"https://example.com\"] --role \"IT Director\" [--applied YYYY-MM-DD] [--stage Applied] [--contact \"Name\"] [--notes \"...\"]',
     '  node tracker.js update --id 106 --stage \"Phone Screen\" --note \"AI phone screen 5/28\"',
     '  node tracker.js reject --company \"Langham Hall\" --note \"Rejected via email 5/29\"',
     '  node tracker.js search --query \"ninja\"',

@@ -361,6 +361,8 @@
     tbody td { padding: 12px 14px; vertical-align: middle; }
     .td-num { color: var(--text3); font-size: 12px; width: 40px; }
     .td-company { font-weight: 600; }
+    .td-address { color: var(--text2); font-size: 12px; max-width: 240px; line-height: 1.35; }
+    .td-website { color: var(--primary); font-size: 12px; max-width: 180px; line-height: 1.35; word-break: break-word; }
     .td-role { color: var(--text2); font-size: 13px; max-width: 220px; }
     .td-date { color: var(--text2); white-space: nowrap; font-size: 13px; }
     .td-contact { color: var(--text2); font-size: 13px; }
@@ -416,6 +418,8 @@
     }
     .kanban-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.08); transform: translateY(-1px); }
     .kanban-card-company { font-weight: 600; font-size: 13px; margin-bottom: 2px; }
+    .kanban-card-address { font-size: 11px; color: var(--text3); margin-bottom: 4px; line-height: 1.35; }
+    .kanban-card-website { font-size: 11px; color: var(--primary); margin-bottom: 4px; line-height: 1.35; word-break: break-word; }
     .kanban-card-role { font-size: 12px; color: var(--text2); margin-bottom: 6px; line-height: 1.4; }
     .kanban-card-date { font-size: 11px; color: var(--text3); }
     .kanban-card-contact { font-size: 11px; color: var(--outreach); margin-top: 4px; }
@@ -713,7 +717,7 @@
 <div class="toolbar">
   <div class="search-wrap">
     <span class="search-icon">🔍</span>
-    <input type="text" id="searchInput" placeholder="Search company, role, notes…" oninput="applyFilters()">
+    <input type="text" id="searchInput" placeholder="Search company, address, website, role, notes…" oninput="applyFilters()">
   </div>
   <select id="stageFilter" onchange="applyFilters()">
     <option value="">All Stages</option>
@@ -731,6 +735,10 @@
     <option value="applied-asc">Date: Oldest First</option>
     <option value="company-asc">Company A→Z</option>
     <option value="company-desc">Company Z→A</option>
+    <option value="address-asc">Address A→Z</option>
+    <option value="address-desc">Address Z→A</option>
+    <option value="website-asc">Website A→Z</option>
+    <option value="website-desc">Website Z→A</option>
     <option value="stage-asc">Stage</option>
   </select>
   <div class="toolbar-right">
@@ -776,6 +784,14 @@
           <div class="form-group">
             <label>Company *</label>
             <input type="text" id="pCompany" placeholder="e.g. Acme Corp">
+          </div>
+          <div class="form-group">
+            <label>Address</label>
+            <input type="text" id="pAddress" placeholder="HQ address">
+          </div>
+          <div class="form-group">
+            <label>Website</label>
+            <input type="text" id="pWebsite" placeholder="https://company.com">
           </div>
           <div class="form-group">
             <label>Role *</label>
@@ -830,9 +846,17 @@
           <input type="text" id="fCompany" placeholder="e.g. Acme Corp">
         </div>
         <div class="form-group">
+          <label>Address</label>
+          <input type="text" id="fAddress" placeholder="HQ address">
+        </div>
+        <div class="form-group">
+          <label>Website</label>
+          <input type="text" id="fWebsite" placeholder="https://company.com">
+        </div>
+      </div>
+      <div class="form-group">
           <label>Role *</label>
           <input type="text" id="fRole" placeholder="e.g. Director of IT">
-        </div>
       </div>
       <div class="form-row">
         <div class="form-group">
@@ -1220,7 +1244,7 @@ function applyFilters() {
   const sort = document.getElementById('sortField').value;
 
   filtered = data.filter(row => {
-    const matchQ = !q || [row.company, row.role, row.notes, row.hmContact]
+    const matchQ = !q || [row.company, row.address, row.website, row.role, row.notes, row.hmContact]
       .some(f => (f||'').toLowerCase().includes(q));
     const matchStage = !stage || row.stage === stage;
     return matchQ && matchStage;
@@ -1281,6 +1305,20 @@ function fmtDate(d) {
   return d;
 }
 
+function normalizeWebsite(value) {
+  const clean = String(value || '').trim();
+  if (!clean) return '';
+  if (/^https?:\/\//i.test(clean)) return clean;
+  if (/^[a-z][a-z0-9+.-]*:/i.test(clean)) return '';
+  return 'https://' + clean.replace(/^\/+/, '');
+}
+
+function renderWebsiteLink(value) {
+  const href = normalizeWebsite(value);
+  if (!href) return esc(value);
+  return `<a href="${esc(href)}" target="_blank" rel="noopener">${esc(href)}</a>`;
+}
+
 function renderTable() {
   const start = (currentPage - 1) * PAGE_SIZE;
   const page  = filtered.slice(start, start + PAGE_SIZE);
@@ -1302,6 +1340,8 @@ function renderTable() {
     <tr>
       <td class="td-num">${row.id}</td>
       <td class="td-company">${esc(row.company)}</td>
+      <td class="td-address">${esc(row.address)}</td>
+      <td class="td-website">${row.website ? renderWebsiteLink(row.website) : ''}</td>
       <td class="td-role">${esc(row.role)}</td>
       <td class="td-date">${fmtDate(row.applied)}</td>
       <td>${stageBadge(row.stage)}</td>
@@ -1332,7 +1372,7 @@ function renderTable() {
       <table>
         <thead>
           <tr>
-            <th>#</th><th>Company</th><th>Role</th><th>Applied</th>
+            <th>#</th><th>Company</th><th>Address</th><th>Website</th><th>Role</th><th>Applied</th>
             <th>Stage</th><th>HM Contact</th><th>Notes</th><th></th>
           </tr>
         </thead>
@@ -1352,6 +1392,8 @@ function renderKanban() {
     const cardHTML = cards.map(row => `
       <div class="kanban-card" onclick="openModal(${row.id})">
         <div class="kanban-card-company">${esc(row.company)}</div>
+        ${row.address ? `<div class="kanban-card-address">${esc(row.address)}</div>` : ''}
+        ${row.website ? `<div class="kanban-card-website">${esc(normalizeWebsite(row.website) || row.website)}</div>` : ''}
         <div class="kanban-card-role">${esc(row.role)}</div>
         <div class="kanban-card-date">Applied ${fmtDate(row.applied)}</div>
         ${row.hmContact ? `<div class="kanban-card-contact">👤 ${esc(row.hmContact)}</div>` : ''}
@@ -1393,6 +1435,8 @@ function openModal(id) {
     const row = data.find(d => d.id === id);
     if (!row) return;
     document.getElementById('fCompany').value = row.company;
+    document.getElementById('fAddress').value = row.address || '';
+    document.getElementById('fWebsite').value = row.website || '';
     document.getElementById('fRole').value    = row.role;
     document.getElementById('fApplied').value = (row.applied||'').slice(0,10) || today;
     document.getElementById('fStage').value   = row.stage;
@@ -1400,6 +1444,8 @@ function openModal(id) {
     document.getElementById('fNotes').value   = row.notes;
   } else {
     document.getElementById('fCompany').value = '';
+    document.getElementById('fAddress').value = '';
+    document.getElementById('fWebsite').value = '';
     document.getElementById('fRole').value    = '';
     document.getElementById('fApplied').value = today;
     document.getElementById('fStage').value   = 'Applied';
@@ -1420,6 +1466,8 @@ function saveEntry() {
   const entry = {
     id: id ? +id : nextId++,
     company,
+    address:   document.getElementById('fAddress').value.trim(),
+    website:   normalizeWebsite(document.getElementById('fWebsite').value),
     role:      document.getElementById('fRole').value.trim(),
     applied:   document.getElementById('fApplied').value || new Date().toISOString().split('T')[0],
     stage:     document.getElementById('fStage').value,
@@ -1473,6 +1521,8 @@ function parseJobPosting() {
 
   const parsed = parseJobText(raw);
   document.getElementById('pCompany').value = parsed.company;
+  document.getElementById('pAddress').value = parsed.address || '';
+  document.getElementById('pWebsite').value = parsed.website || '';
   document.getElementById('pRole').value = parsed.role;
   document.getElementById('pApplied').value = todayISO();
   document.getElementById('pStage').value = 'Applied';
@@ -1499,7 +1549,7 @@ function parseJobText(raw) {
   const mode = inferWorkMode(lower);
   const notes = buildParsedNotes({ text, lower, location, salary, mode });
 
-  return { company, role, contact, notes };
+  return { company, address: '', website: '', role, contact, notes };
 }
 
 function inferRole(lines) {
@@ -1625,6 +1675,8 @@ function cleanParsedValue(value) {
 function clearParsedJob() {
   document.getElementById('jobPasteInput').value = '';
   document.getElementById('pCompany').value = '';
+  document.getElementById('pAddress').value = '';
+  document.getElementById('pWebsite').value = '';
   document.getElementById('pRole').value = '';
   document.getElementById('pApplied').value = todayISO();
   document.getElementById('pStage').value = 'Applied';
@@ -1639,6 +1691,8 @@ function saveParsedJob() {
     return;
   }
   const company = document.getElementById('pCompany').value.trim();
+  const address = document.getElementById('pAddress').value.trim();
+  const website = normalizeWebsite(document.getElementById('pWebsite').value);
   const role = document.getElementById('pRole').value.trim();
   if (!company) { document.getElementById('pCompany').focus(); return; }
   if (!role) { document.getElementById('pRole').focus(); return; }
@@ -1646,6 +1700,8 @@ function saveParsedJob() {
   const entry = {
     id: nextId++,
     company,
+    address,
+    website,
     role,
     applied: document.getElementById('pApplied').value || todayISO(),
     stage: document.getElementById('pStage').value,
