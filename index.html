@@ -1637,34 +1637,57 @@ function inferRole(lines) {
     if (skip.test(line)) continue;
     if (line.length > 90) continue;
     if (locationish.test(line) && !titleish.test(line)) continue;
-    if (titleish.test(line)) return cleanParsedValue(line);
+    if (titleish.test(line)) return cleanRole(line);
   }
   return '';
 }
 
+// Drop a user-typed "applied to / applying for" prefix from the role line.
+function cleanRole(line) {
+  return cleanParsedValue(String(line).replace(/^(?:applied|applying|apply)\s+(?:to|for)\s+/i, ''));
+}
+
 function inferCompany(lines, text) {
   if (/Early Warning Services/i.test(text)) return 'Early Warning Services';
+
+  // Name on the line(s) right after a "Company Description / About Us" header.
+  const headerIdx = lines.findIndex(l =>
+    /^(?:company (?:description|overview|profile)|about (?:us|the company)|who we are)$/i.test(l.replace(/:$/, '')));
+  if (headerIdx !== -1) {
+    for (const line of lines.slice(headerIdx + 1, headerIdx + 4)) {
+      const m = line.match(/^([A-Z][A-Za-z0-9&.'’\- ]{1,45}?)\s+(?:is|are|—|–|-|,|was|provides|powers|builds|partners|helps|delivers)\b/);
+      if (m && !isGenericCompany(m[1])) return cleanCompany(m[1]);
+    }
+  }
+
   const patterns = [
     /(?:^|\n)\s*At\s+([A-Z][A-Za-z0-9&.'’\- ]{1,45}?)(?:,|\s+(?:we|we're|we’re|is|has|was|brings|powers|connects|offers|provides|builds)\b)/,
     /(?:^|\n)\s*About\s+([A-Z][A-Za-z0-9&.'’\- ]{1,45})(?:\n|$)/i,
     /([A-Z][A-Za-z0-9&.'’\- ]{1,45})\s+is\s+(?:looking|seeking|hiring)\b/,
-    /Join\s+([A-Z][A-Za-z0-9&.'’\- ]{1,45})\b/,
-    /([A-Z][A-Za-z0-9&.'’\- ]{1,45})\s+(?:was founded|has grown|is reinventing|is building)\b/
+    /Join\s+([A-Z][A-Za-z0-9&.'’\- ]{1,45}?)(?:,|\s+(?:as|to|in|on|today|and|where|because|—|–)\b)/,
+    /([A-Z][A-Za-z0-9&.'’\- ]{1,45})\s+(?:was founded|has grown|is reinventing|is building)\b/,
+    /(?:^|\n)\s*([A-Z][A-Za-z0-9&.'’\-]+(?:\s+[A-Z][A-Za-z0-9&.'’\-]+){0,3})\s+is\s+(?:a|an|the)\b/
   ];
   for (const pattern of patterns) {
     const match = text.match(pattern);
-    if (match) return cleanCompany(match[1]);
+    if (match && !isGenericCompany(match[1])) return cleanCompany(match[1]);
   }
 
   const shortLines = lines.slice(0, 6).filter(l => l.length <= 55);
-  const bad = /^(about|overview|job description|remote|hybrid|onsite|location|locations|employment type)$/i;
+  const bad = /^(about|overview|job description|remote|hybrid|onsite|location|locations|employment type|full-time|part-time|company description)$/i;
   const roleWords = /\b(director|manager|engineer|architect|specialist|vp|vice president|chief|lead|senior|sr\.?)\b/i;
+  // Reject lines that read like a sentence rather than a company name.
+  const sentenceish = /\b(?:can|will|are|is|we|our|your|you|the|and|for|with|to|of|work|remotely|employees)\b/i;
   for (const line of shortLines) {
-    if (!bad.test(line) && !roleWords.test(line) && /^[A-Z0-9][A-Za-z0-9&.'’\- ]+$/.test(line)) {
+    if (!bad.test(line) && !roleWords.test(line) && !sentenceish.test(line) && /^[A-Z0-9][A-Za-z0-9&.'’\- ]+$/.test(line)) {
       return cleanCompany(line);
     }
   }
   return '';
+}
+
+function isGenericCompany(value) {
+  return /^(?:this|that|the|we|our|you|your|it|there|here|they|position|role|candidate|company|team|overview|summary|description|job|responsibilities|requirements|about|who|what|enterprise technology|employees)$/i.test(String(value || '').trim());
 }
 
 function cleanCompany(value) {
