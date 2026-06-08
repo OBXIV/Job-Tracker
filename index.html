@@ -1150,6 +1150,9 @@ function initAuth() {
       data = [];
       applyFilters();
       hideSyncBanner();
+      // Local dev preview: skip the Google gate so the UI/parser/Settings can be
+      // tested without signing in. Live deploys still require sign-in.
+      if (isLocalPreview()) { hideAuthOverlay(); return; }
       showAuthOverlay();
       return;
     }
@@ -1157,6 +1160,10 @@ function initAuth() {
     hideAuthOverlay();
     startListening();
   });
+}
+
+function isLocalPreview() {
+  return ['localhost', '127.0.0.1', '0.0.0.0', '[::1]'].includes(location.hostname);
 }
 
 async function handleConnect() {
