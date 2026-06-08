@@ -747,6 +747,7 @@
       <button id="btnKanban" onclick="setView('kanban')">⊞ Kanban</button>
       <button id="btnParse" onclick="setView('parse')">✎ Parse Job</button>
     </div>
+    <button class="icon-btn" title="Settings" onclick="openSettings()" style="font-size:18px">⚙️</button>
   </div>
 </div>
 
@@ -889,6 +890,29 @@
     <div class="modal-footer">
       <button class="btn" onclick="closeModal()">Cancel</button>
       <button class="btn primary" onclick="saveEntry()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Settings modal -->
+<div class="modal-overlay" id="settingsOverlay" onclick="handleSettingsOverlayClick(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Settings</div>
+      <button class="icon-btn" onclick="closeSettings()" style="font-size:20px">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Google Places API key</label>
+        <input type="password" id="sPlacesKey" placeholder="Paste your Places API (New) key" autocomplete="off">
+        <div class="parser-note" style="margin-top:8px">
+          Used to fill the full HQ street address when parsing a job posting. Stored only in this browser (localStorage) — never sent anywhere except Google. Leave blank to fall back to the city/state from the posting.
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="clearSettingsKey()">Remove key</button>
+      <button class="btn primary" onclick="saveSettings()">Save</button>
     </div>
   </div>
 </div>
@@ -1458,6 +1482,24 @@ function openModal(id) {
 
 function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
 function handleOverlayClick(e) { if (e.target === document.getElementById('modalOverlay')) closeModal(); }
+
+function openSettings() {
+  document.getElementById('sPlacesKey').value = getPlacesApiKey();
+  document.getElementById('settingsOverlay').classList.add('open');
+}
+function closeSettings() { document.getElementById('settingsOverlay').classList.remove('open'); }
+function handleSettingsOverlayClick(e) { if (e.target === document.getElementById('settingsOverlay')) closeSettings(); }
+function saveSettings() {
+  setPlacesApiKey(document.getElementById('sPlacesKey').value);
+  closeSettings();
+  toast('Settings saved', 'green');
+}
+function clearSettingsKey() {
+  document.getElementById('sPlacesKey').value = '';
+  try { localStorage.removeItem('placesApiKey'); } catch (e) {}
+  closeSettings();
+  toast('API key removed');
+}
 
 function saveEntry() {
   const company = document.getElementById('fCompany').value.trim();
