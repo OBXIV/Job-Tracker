@@ -1544,6 +1544,18 @@ function parseJobPosting() {
       if (url && !field.value.trim()) field.value = url;
     });
   }
+
+  // Look up the real HQ street address (the JD usually only gives city/state).
+  if (parsed.company) {
+    const field = document.getElementById('pAddress');
+    const cityState = field.value; // what inferAddress filled, so we know if it's untouched
+    field.placeholder = 'Looking up HQ…';
+    lookupCompanyAddress(parsed.company, parsed.address).then(addr => {
+      field.placeholder = 'HQ address';
+      // Only replace if the field still holds the auto-filled city/state (don't clobber edits).
+      if (addr && field.value === cityState) field.value = addr;
+    });
+  }
 }
 
 function parseJobText(raw) {
@@ -1623,6 +1635,44 @@ async function lookupCompanyWebsite(company) {
     } catch (e) { /* try next query */ }
   }
   return '';
+}
+
+// Google Places API key, stored in localStorage so it never lands in the repo.
+// Set it once in the browser console: setPlacesApiKey('YOUR_KEY')
+function getPlacesApiKey() {
+  try { return localStorage.getItem('placesApiKey') || ''; } catch (e) { return ''; }
+}
+window.setPlacesApiKey = function (key) {
+  try { localStorage.setItem('placesApiKey', String(key || '').trim()); return 'Saved.'; }
+  catch (e) { return 'Could not save: ' + e.message; }
+};
+
+// Resolve the real HQ street address via Google Places (New) Text Search.
+// CORS-friendly endpoint. Returns '' if no key or no confident result (no guessing).
+async function lookupCompanyAddress(company, location) {
+  const name = String(company || '').trim();
+  const key = getPlacesApiKey();
+  if (!name || !key) return '';
+  const cityHint = String(location || '').replace(/\b(remote|hybrid|onsite|usa)\b/gi, '').replace(/[,\s]+$/,'').trim();
+  const textQuery = (name + ' headquarters' + (cityHint ? ' ' + cityHint : '')).trim();
+  try {
+    const res = await fetch('https://places.googleapis.com/v1/places:searchText', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': key,
+        'X-Goog-FieldMask': 'places.formattedAddress,places.displayName'
+      },
+      body: JSON.stringify({ textQuery, maxResultCount: 1 })
+    });
+    if (!res.ok) return '';
+    const data = await res.json();
+    const place = data && Array.isArray(data.places) ? data.places[0] : null;
+    if (!place || !place.formattedAddress) return '';
+    return place.formattedAddress.replace(/,\s*USA$/i, '');
+  } catch (e) {
+    return '';
+  }
 }
 
 function inferRole(lines) {
