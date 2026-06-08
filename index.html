@@ -1534,6 +1534,16 @@ function parseJobPosting() {
   } else {
     toast('Posting parsed. Review before saving.', 'green');
   }
+
+  // If the posting had no explicit URL, look up the real homepage by company name.
+  if (!parsed.website && parsed.company) {
+    const field = document.getElementById('pWebsite');
+    field.placeholder = 'Looking up…';
+    lookupCompanyWebsite(parsed.company).then(url => {
+      field.placeholder = 'https://company.com';
+      if (url && !field.value.trim()) field.value = url;
+    });
+  }
 }
 
 function parseJobText(raw) {
@@ -1547,9 +1557,72 @@ function parseJobText(raw) {
   const contact = inferContact(text);
   const salary = inferSalary(text);
   const mode = inferWorkMode(lower);
+  const address = inferAddress(text, location);
+  const website = inferWebsite(text, company);
   const notes = buildParsedNotes({ text, lower, location, salary, mode });
 
-  return { company, address: '', website: '', role, contact, notes };
+  return { company, address, website, role, contact, notes };
+}
+
+function inferAddress(text, location) {
+  // Explicit "headquartered/based/located in <City, ST>" phrasing on a single sentence.
+  const hq = text.match(/\b(?:global |corporate |company )?(?:headquarter(?:ed|s)?|head office|hq|based|located)\b[^.\n]{0,40}?\bin\b\s+([A-Z][A-Za-z.'\-]+(?:\s+[A-Z][A-Za-z.'\-]+){0,3},\s*(?:[A-Z]{2}\b|[A-Z][a-z]+))/);
+  if (hq) return cleanParsedValue(hq[1]);
+
+  // Full street address: number + street + suffix, optional suite, optional city/state/zip.
+  const street = text.match(/\b\d{1,6}\s+(?:[A-Z0-9][A-Za-z0-9.'\-]*\s+){1,6}(?:Street|St|Avenue|Ave|Boulevard|Blvd|Road|Rd|Drive|Dr|Lane|Ln|Way|Court|Ct|Circle|Cir|Plaza|Place|Pl|Parkway|Pkwy|Highway|Hwy|Trail|Terrace|Square)\b\.?(?:,?\s*(?:Suite|Ste\.?|Floor|Fl\.?|#)\s*[\w-]+)?(?:,\s*[A-Z][A-Za-z.'\- ]+,\s*[A-Z]{2}\s*\d{5}(?:-\d{4})?)?/);
+  if (street) return cleanParsedValue(street[0]);
+
+  // Fall back to the parsed location if it looks like "City, ST".
+  if (location && /,\s*(?:[A-Z]{2}\b|[A-Z][a-z]+)/.test(location) && !/\b(remote|hybrid|onsite)\b/i.test(location)) {
+    return cleanParsedValue(location);
+  }
+  return '';
+}
+
+function inferWebsite(text, company) {
+  // Domains that belong to job boards / ATS / social, not the employer.
+  const skipDomain = /^(?:[a-z0-9-]+\.)*(?:linkedin|indeed|glassdoor|greenhouse|lever|myworkdayjobs|workday|icims|jobvite|smartrecruiters|ashbyhq|bamboohr|taleo|brassring|ziprecruiter|monster|dice|builtin|wellfound|angellist|google|bing|schema|w3|gmail|outlook|youtube|facebook|twitter|instagram|github)\./i;
+  const candidates = text.match(/\b(?:https?:\/\/)?(?:www\.)?[a-z0-9][a-z0-9-]*(?:\.[a-z0-9-]+)*\.(?:com|io|co|net|org|ai|tech|app|us)\b(?:\/[^\s]*)?/gi) || [];
+  for (const raw of candidates) {
+    const host = raw.replace(/^https?:\/\//i, '').replace(/\/.*$/, '').toLowerCase();
+    if (skipDomain.test(host)) continue;
+    if (/\.(?:png|jpe?g|gif|svg|css|js)$/i.test(host)) continue;
+    return 'https://' + host;
+  }
+
+  // No usable URL in the posting — leave blank; lookupCompanyWebsite() fills it for real.
+  return '';
+}
+
+// Resolve a real homepage from a company name via Clearbit's autocomplete API.
+// Returns '' if nothing confident is found (no guessing).
+async function lookupCompanyWebsite(company) {
+  const name = String(company || '').trim();
+  if (!name) return '';
+
+  // Try the full name first; if that finds nothing, retry without generic suffix words.
+  const trimmed = name
+    .replace(/\b(?:inc|llc|ltd|limited|corp|corporation|co|company|plc|gmbh|holdings|group|services|solutions|systems|technologies)\b\.?/gi, '')
+    .replace(/,/g, ' ').replace(/\s+/g, ' ').trim();
+  const queries = [name];
+  if (trimmed && trimmed.toLowerCase() !== name.toLowerCase()) queries.push(trimmed);
+
+  const lc = name.toLowerCase();
+  for (const q of queries) {
+    try {
+      const res = await fetch('https://autocomplete.clearbit.com/v1/companies/suggest?query=' + encodeURIComponent(q));
+      if (!res.ok) continue;
+      const list = await res.json();
+      if (!Array.isArray(list) || !list.length) continue;
+      // Prefer an exact name match, otherwise take the top suggestion.
+      const hit = list.find(c => (c.name || '').toLowerCase() === lc)
+        || list.find(c => (c.name || '').toLowerCase() === q.toLowerCase())
+        || list[0];
+      if (hit && hit.domain) return 'https://' + hit.domain.toLowerCase();
+    } catch (e) { /* try next query */ }
+  }
+  return '';
 }
 
 function inferRole(lines) {
