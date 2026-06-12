@@ -395,8 +395,8 @@
     .stage-Final-Round .stage-dot { background: var(--final); }
     .stage-Offer       { background: var(--offer-bg);     color: #047857; }
     .stage-Offer       .stage-dot { background: var(--offer); }
-    .stage-Rejected    { background: var(--rejected-bg);  color: var(--rejected); }
-    .stage-Rejected    .stage-dot { background: var(--rejected); }
+    .stage-Not-Moving-Forward { background: var(--rejected-bg);  color: var(--rejected); }
+    .stage-Not-Moving-Forward .stage-dot { background: var(--rejected); }
     .stage-Withdrawn   { background: var(--withdrawn-bg); color: var(--withdrawn); }
     .stage-Withdrawn   .stage-dot { background: var(--withdrawn); }
 
@@ -431,7 +431,7 @@
     .col-Interview     { background: var(--interview-bg); border-color: var(--interview); color: #c2410c; }
     .col-Final-Round   { background: var(--final-bg);     border-color: var(--final);     color: #b91c1c; }
     .col-Offer         { background: var(--offer-bg);     border-color: var(--offer);     color: #047857; }
-    .col-Rejected      { background: var(--rejected-bg);  border-color: #d1d5db;          color: var(--rejected); }
+    .col-Not-Moving-Forward { background: var(--rejected-bg);  border-color: #d1d5db;          color: var(--rejected); }
     .col-Withdrawn     { background: var(--withdrawn-bg); border-color: #cbd5e1;          color: var(--withdrawn); }
 
     /* ── Parser ── */
@@ -727,7 +727,7 @@
     <option>Interview</option>
     <option>Final Round</option>
     <option>Offer</option>
-    <option>Rejected</option>
+    <option>Not Moving Forward</option>
     <option>Withdrawn</option>
   </select>
   <select id="sortField" onchange="applyFilters()">
@@ -812,7 +812,7 @@
                 <option>Interview</option>
                 <option>Final Round</option>
                 <option>Offer</option>
-                <option>Rejected</option>
+                <option>Not Moving Forward</option>
                 <option>Withdrawn</option>
               </select>
             </div>
@@ -873,7 +873,7 @@
             <option>Interview</option>
             <option>Final Round</option>
             <option>Offer</option>
-            <option>Rejected</option>
+            <option>Not Moving Forward</option>
             <option>Withdrawn</option>
           </select>
         </div>
@@ -924,32 +924,32 @@
 <script>
 // ── Initial Dataset (seed data for first-ever launch) ────────────────────────
 const INITIAL_DATA = [
-  {"id":1,"company":"Raising Cane's","role":"Senior IT Manager","applied":"2026-04-30","stage":"Rejected","hmContact":"","notes":"Rejected via email 5/2"},
+  {"id":1,"company":"Raising Cane's","role":"Senior IT Manager","applied":"2026-04-30","stage":"Not Moving Forward","hmContact":"","notes":"Rejected via email 5/2"},
   {"id":2,"company":"Applied Digital","role":"Director of IT","applied":"2026-04-30","stage":"Applied","hmContact":"","notes":""},
   {"id":3,"company":"SGF Global","role":"IT Manager","applied":"2026-04-30","stage":"Applied","hmContact":"","notes":""},
   {"id":4,"company":"United Pacific Bank","role":"Head of Security & IT","applied":"2026-04-30","stage":"Applied","hmContact":"","notes":""},
   {"id":5,"company":"HEXPOL","role":"Director of IT","applied":"2026-04-30","stage":"Applied","hmContact":"","notes":""},
-  {"id":6,"company":"Oldcastle Building Envelope","role":"Director of Network Architecture & Engineering","applied":"2026-04-30","stage":"Rejected","hmContact":"","notes":"Rejected 5/8"},
-  {"id":7,"company":"Compunet (Utah)","role":"Account Executive","applied":"2026-04-29","stage":"Rejected","hmContact":"","notes":"Rejected"},
+  {"id":6,"company":"Oldcastle Building Envelope","role":"Director of Network Architecture & Engineering","applied":"2026-04-30","stage":"Not Moving Forward","hmContact":"","notes":"Rejected 5/8"},
+  {"id":7,"company":"Compunet (Utah)","role":"Account Executive","applied":"2026-04-29","stage":"Not Moving Forward","hmContact":"","notes":"Rejected"},
   {"id":8,"company":"HumCap","role":"Director of IT","applied":"2026-04-29","stage":"Applied","hmContact":"","notes":""},
   {"id":9,"company":"Ledgent","role":"Regional IT Infrastructure Manager","applied":"2026-04-29","stage":"Applied","hmContact":"","notes":""},
-  {"id":10,"company":"Darkhive","role":"IT Manager","applied":"2026-04-28","stage":"Rejected","hmContact":"Brianne Matlage","notes":"Rejected 5/12 · Feedback requested"},
-  {"id":11,"company":"St. Lukes","role":"IHT Process Manager","applied":"2026-04-27","stage":"Rejected","hmContact":"","notes":"Rejected 5/2"},
+  {"id":10,"company":"Darkhive","role":"IT Manager","applied":"2026-04-28","stage":"Not Moving Forward","hmContact":"Brianne Matlage","notes":"Rejected 5/12 · Feedback requested"},
+  {"id":11,"company":"St. Lukes","role":"IHT Process Manager","applied":"2026-04-27","stage":"Not Moving Forward","hmContact":"","notes":"Rejected 5/2"},
   {"id":12,"company":"Western Trailers Manufacturing","role":"IT Manager","applied":"2026-04-27","stage":"Applied","hmContact":"","notes":""},
   {"id":13,"company":"Base Power Company","role":"Head of IT & Security","applied":"2026-04-27","stage":"Applied","hmContact":"","notes":""},
   {"id":14,"company":"Skylight","role":"Director of IT","applied":"2026-04-27","stage":"Applied","hmContact":"","notes":""},
   {"id":15,"company":"Aravo","role":"Senior Manager IT","applied":"2026-04-27","stage":"Interview","hmContact":"Mark Kizer","notes":"Phone screen 5/13 · TX presence 1-4x/year"},
-  {"id":16,"company":"GFiber","role":"Regional IT Manager","applied":"2026-04-26","stage":"Rejected","hmContact":"","notes":""},
-  {"id":17,"company":"AWS","role":"Data Center Operations Manager","applied":"2026-04-24","stage":"Rejected","hmContact":"","notes":"Rejected 4/27"},
+  {"id":16,"company":"GFiber","role":"Regional IT Manager","applied":"2026-04-26","stage":"Not Moving Forward","hmContact":"","notes":""},
+  {"id":17,"company":"AWS","role":"Data Center Operations Manager","applied":"2026-04-24","stage":"Not Moving Forward","hmContact":"","notes":"Rejected 4/27"},
   {"id":18,"company":"Ben E. Keith","role":"IT Service Delivery Manager","applied":"2026-04-18","stage":"Phone Screen","hmContact":"","notes":"Phone screen 4/20 · No response"},
-  {"id":19,"company":"Micron Technology","role":"Sr. Manager of Computing","applied":"2026-04-08","stage":"Rejected","hmContact":"","notes":"Rejected 5/13 after 2nd interview"},
-  {"id":20,"company":"Idaho Trust Company","role":"IT Manager","applied":"2026-04-04","stage":"Rejected","hmContact":"Owner/President","notes":"Ghosted · Job reposted"},
-  {"id":21,"company":"Brighton Corporation","role":"IT Manager","applied":"2026-03-28","stage":"Rejected","hmContact":"","notes":"Final Exec Interview 4/10 · Rejected"},
+  {"id":19,"company":"Micron Technology","role":"Sr. Manager of Computing","applied":"2026-04-08","stage":"Not Moving Forward","hmContact":"","notes":"Rejected 5/13 after 2nd interview"},
+  {"id":20,"company":"Idaho Trust Company","role":"IT Manager","applied":"2026-04-04","stage":"Not Moving Forward","hmContact":"Owner/President","notes":"Ghosted · Job reposted"},
+  {"id":21,"company":"Brighton Corporation","role":"IT Manager","applied":"2026-03-28","stage":"Not Moving Forward","hmContact":"","notes":"Final Exec Interview 4/10 · Rejected"},
   {"id":22,"company":"Experis (Client TBD)","role":"IT Manager - Data Operations & Platforms","applied":"2026-05-02","stage":"Applied","hmContact":"","notes":"Via Experis staffing"},
-  {"id":23,"company":"Anchor Talent (Client TBD)","role":"Director of IT & Information Systems","applied":"2026-05-02","stage":"Rejected","hmContact":"","notes":"Rejected 5/6"},
-  {"id":24,"company":"LCRA","role":"Director, Corporate Data & Network Infrastructure","applied":"2026-05-02","stage":"Rejected","hmContact":"","notes":"Austin, TX · Rejected 5/4"},
+  {"id":23,"company":"Anchor Talent (Client TBD)","role":"Director of IT & Information Systems","applied":"2026-05-02","stage":"Not Moving Forward","hmContact":"","notes":"Rejected 5/6"},
+  {"id":24,"company":"LCRA","role":"Director, Corporate Data & Network Infrastructure","applied":"2026-05-02","stage":"Not Moving Forward","hmContact":"","notes":"Austin, TX · Rejected 5/4"},
   {"id":25,"company":"Dynamic Systems","role":"Technology Service Operations Manager","applied":"2026-05-02","stage":"Applied","hmContact":"","notes":"Buda, TX"},
-  {"id":26,"company":"AWS","role":"Sr. Manager, Networking & Operations Network Engineering","applied":"2026-05-02","stage":"Rejected","hmContact":"","notes":"Rejected 5/8"},
+  {"id":26,"company":"AWS","role":"Sr. Manager, Networking & Operations Network Engineering","applied":"2026-05-02","stage":"Not Moving Forward","hmContact":"","notes":"Rejected 5/8"},
   {"id":27,"company":"Serco","role":"Manager, Data Analytics","applied":"2026-05-02","stage":"Applied","hmContact":"","notes":"Boise, ID"},
   {"id":28,"company":"DR Horton","role":"Director of IT","applied":"2026-05-03","stage":"Applied","hmContact":"","notes":"Dallas, TX"},
   {"id":29,"company":"Backstory","role":"Director of IT","applied":"2026-05-04","stage":"Applied","hmContact":"","notes":"Remote"},
@@ -957,21 +957,21 @@ const INITIAL_DATA = [
   {"id":31,"company":"Texas Health & Human Services","role":"Director of IT Service Delivery","applied":"2026-05-04","stage":"Applied","hmContact":"","notes":"Austin, TX"},
   {"id":32,"company":"Ben E. Keith","role":"Sr. Manager, Digital Workplace","applied":"2026-05-05","stage":"Applied","hmContact":"","notes":"Fort Worth, TX"},
   {"id":33,"company":"True North Consultants (Client TBD)","role":"Regional Infrastructure Manager, Americas","applied":"2026-05-05","stage":"HM Outreach","hmContact":"","notes":"DFW Metroplex"},
-  {"id":34,"company":"Sunrun","role":"Supervisor, Systems & Network Operations","applied":"2026-05-05","stage":"Rejected","hmContact":"","notes":"Rejected 5/7"},
+  {"id":34,"company":"Sunrun","role":"Supervisor, Systems & Network Operations","applied":"2026-05-05","stage":"Not Moving Forward","hmContact":"","notes":"Rejected 5/7"},
   {"id":35,"company":"Coldstream Wealth Management","role":"Director of IT","applied":"2026-05-05","stage":"Applied","hmContact":"","notes":"Bellevue, WA · Hybrid · Boise office"},
-  {"id":36,"company":"Aircall","role":"Senior Manager of IT Operations","applied":"2026-05-05","stage":"Rejected","hmContact":"","notes":"Position filled"},
+  {"id":36,"company":"Aircall","role":"Senior Manager of IT Operations","applied":"2026-05-05","stage":"Not Moving Forward","hmContact":"","notes":"Position filled"},
   {"id":37,"company":"Olivier James","role":"Director of IT Operations","applied":"2026-05-05","stage":"Applied","hmContact":"","notes":"Dallas, TX"},
   {"id":38,"company":"American Airlines","role":"Manager of IT Engineering","applied":"2026-05-05","stage":"Applied","hmContact":"","notes":"Fort Worth, TX"},
   {"id":39,"company":"Brown & Brown","role":"Sr. Director, Technology Solutions Shared Services","applied":"2026-05-05","stage":"Applied","hmContact":"","notes":"Remote · Plano, TX"},
   {"id":40,"company":"Harnham","role":"Global Network Director","applied":"2026-05-05","stage":"Applied","hmContact":"","notes":"Dallas, TX"},
-  {"id":41,"company":"Texas Health Action","role":"VP of Health Information & Technology","applied":"2026-04-01","stage":"Rejected","hmContact":"","notes":"Pre-tracker · Rejected"},
+  {"id":41,"company":"Texas Health Action","role":"VP of Health Information & Technology","applied":"2026-04-01","stage":"Not Moving Forward","hmContact":"","notes":"Pre-tracker · Rejected"},
   {"id":42,"company":"InNet","role":"Account Executive, Sr. IT Solutions & Info Security","applied":"2026-05-05","stage":"Applied","hmContact":"","notes":"Austin, TX"},
   {"id":43,"company":"Arcis Golf","role":"Director of IT","applied":"2026-05-05","stage":"Applied","hmContact":"","notes":"Dallas, TX"},
-  {"id":44,"company":"PAX Technology","role":"IT Director","applied":"2026-05-06","stage":"Rejected","hmContact":"","notes":"Rejected 5/8"},
+  {"id":44,"company":"PAX Technology","role":"IT Director","applied":"2026-05-06","stage":"Not Moving Forward","hmContact":"","notes":"Rejected 5/8"},
   {"id":45,"company":"CLEARResult","role":"Technology Operations Manager","applied":"2026-05-06","stage":"Applied","hmContact":"","notes":"Austin, TX"},
   {"id":46,"company":"Net2Source (N2S)","role":"Director of Infrastructure & Network Architecture","applied":"2026-05-06","stage":"Applied","hmContact":"","notes":"Dallas, TX · Remote"},
-  {"id":47,"company":"Veterans Benefits Guide","role":"(Unknown)","applied":"2026-04-15","stage":"Rejected","hmContact":"","notes":"Pre-tracker · Position filled"},
-  {"id":48,"company":"ShipMonk","role":"VP of Information Technology","applied":"2026-05-07","stage":"Rejected","hmContact":"","notes":"Fort Worth, TX · Rejected"},
+  {"id":47,"company":"Veterans Benefits Guide","role":"(Unknown)","applied":"2026-04-15","stage":"Not Moving Forward","hmContact":"","notes":"Pre-tracker · Position filled"},
+  {"id":48,"company":"ShipMonk","role":"VP of Information Technology","applied":"2026-05-07","stage":"Not Moving Forward","hmContact":"","notes":"Fort Worth, TX · Rejected"},
   {"id":49,"company":"Child Care Group","role":"VP of Technology","applied":"2026-05-07","stage":"Applied","hmContact":"","notes":"Dallas, TX · VP level"},
   {"id":50,"company":"Carestream Dental","role":"Sr. Director, Global Business Systems","applied":"2026-05-07","stage":"Applied","hmContact":"","notes":"$175-200K · Global scope · Salesforce/ERP"},
   {"id":51,"company":"Principle Auto Group","role":"Director of IT","applied":"2026-05-07","stage":"Applied","hmContact":"","notes":"San Antonio, TX"},
@@ -981,13 +981,13 @@ const INITIAL_DATA = [
   {"id":55,"company":"OSI Vision","role":"Sr. Director, IT Infrastructure & Managed Services","applied":"2026-05-08","stage":"Applied","hmContact":"","notes":"San Antonio, TX · Commercial & federal · Exec team"},
   {"id":56,"company":"Mirantis","role":"Technical Service Delivery Manager","applied":"2026-05-10","stage":"Applied","hmContact":"","notes":"Austin, TX · Cloud/Kubernetes"},
   {"id":57,"company":"3M","role":"Sr. Manager, IT Asset Management","applied":"2026-05-10","stage":"Applied","hmContact":"","notes":"Austin, TX · Fortune 500"},
-  {"id":58,"company":"Vanta","role":"Sr. Director, Corporate Engineering","applied":"2026-05-10","stage":"Rejected","hmContact":"","notes":"Rejected"},
+  {"id":58,"company":"Vanta","role":"Sr. Director, Corporate Engineering","applied":"2026-05-10","stage":"Not Moving Forward","hmContact":"","notes":"Rejected"},
   {"id":59,"company":"SHI","role":"Manager, Enterprise Cloud Infrastructure Services","applied":"2026-05-11","stage":"Applied","hmContact":"","notes":"Austin, TX"},
   {"id":60,"company":"Chobani","role":"Network Infrastructure Project Coordinator","applied":"2026-05-12","stage":"Phone Screen","hmContact":"Mario Echeverria","notes":"Twin Falls, ID · Contract $80/hr W2 · OT/food manufacturing"},
-  {"id":61,"company":"Aldridge","role":"Technical Director","applied":"2026-05-12","stage":"Rejected","hmContact":"","notes":"Rejected"},
+  {"id":61,"company":"Aldridge","role":"Technical Director","applied":"2026-05-12","stage":"Not Moving Forward","hmContact":"","notes":"Rejected"},
   {"id":62,"company":"Bob Moore Motor Group","role":"Director of IT","applied":"2026-05-12","stage":"Applied","hmContact":"","notes":"Oklahoma City, OK"},
   {"id":63,"company":"Legent Health","role":"Senior VP of Technology","applied":"2026-05-13","stage":"Applied","hmContact":"","notes":"Dallas, TX · SVP level"},
-  {"id":64,"company":"Amazon (Eero)","role":"Support Engineering Manager, CX Engineering","applied":"2026-05-13","stage":"Rejected","hmContact":"","notes":"Boise, ID · Rejected"},
+  {"id":64,"company":"Amazon (Eero)","role":"Support Engineering Manager, CX Engineering","applied":"2026-05-13","stage":"Not Moving Forward","hmContact":"","notes":"Boise, ID · Rejected"},
   {"id":65,"company":"Sycomp","role":"Global Account Executive","applied":"2026-05-13","stage":"Applied","hmContact":"","notes":"Remote"},
   {"id":66,"company":"Enovis","role":"Sr. Director, Infrastructure","applied":"2026-05-14","stage":"Applied","hmContact":"","notes":"Dallas, TX · Medical device"},
   {"id":67,"company":"Qarbon Aerospace","role":"IT Service Delivery Manager","applied":"2026-05-14","stage":"Applied","hmContact":"","notes":"Red Oak, TX · Aerospace"},
@@ -997,7 +997,7 @@ const INITIAL_DATA = [
   {"id":71,"company":"Kasasa","role":"IT Security Manager","applied":"2026-05-14","stage":"Applied","hmContact":"","notes":"Austin, TX · Fintech"},
   {"id":72,"company":"Addison Group","role":"Senior IT Manager","applied":"2026-05-14","stage":"Applied","hmContact":"","notes":"Austin, TX"},
   {"id":73,"company":"Addison Group","role":"VP IT Infrastructure","applied":"2026-05-14","stage":"Applied","hmContact":"","notes":"Phoenix, AZ · VP level"},
-  {"id":74,"company":"Universal Diagnostics","role":"Director of IT","applied":"2026-05-15","stage":"Rejected","hmContact":"","notes":"Dallas, TX"},
+  {"id":74,"company":"Universal Diagnostics","role":"Director of IT","applied":"2026-05-15","stage":"Not Moving Forward","hmContact":"","notes":"Dallas, TX"},
   {"id":75,"company":"Argus IT Services","role":"Manager of IT Operations & Service Delivery","applied":"2026-05-15","stage":"Applied","hmContact":"","notes":"Fort Worth, TX"},
   {"id":76,"company":"Future Secure AI","role":"Head of IT","applied":"2026-05-15","stage":"Applied","hmContact":"","notes":"Austin, TX"},
   {"id":77,"company":"University of Texas","role":"Director of IT Architecture & Delivery","applied":"2026-05-15","stage":"Applied","hmContact":"","notes":"Austin, TX"},
@@ -1018,7 +1018,13 @@ const INITIAL_DATA = [
   {"id":92,"company":"PC Recruiting HR","role":"IT Manager","applied":"2026-05-24","stage":"Applied","hmContact":"","notes":"Boise, ID"}
 ];
 
-const STAGES = ["Applied","HM Outreach","Phone Screen","Interview","Final Round","Offer","Rejected","Withdrawn"];
+const NOT_MOVING_FORWARD_STAGE = 'Not Moving Forward';
+const STAGES = ["Applied","HM Outreach","Phone Screen","Interview","Final Round","Offer",NOT_MOVING_FORWARD_STAGE,"Withdrawn"];
+
+function normalizeStageValue(stage) {
+  if (stage === 'Rejected') return NOT_MOVING_FORWARD_STAGE;
+  return stage || 'Applied';
+}
 
 // ── Firebase config (baked in) ──
 const FIREBASE_CONFIG = {
@@ -1227,7 +1233,7 @@ function startListening() {
       ? val
       : (val && typeof val === 'object' ? Object.values(val) : null);
     if (rows && rows.length > 0) {
-      data = rows;
+      data = rows.map(row => ({ ...row, stage: normalizeStageValue(row.stage) }));
       nextId = Math.max(...data.map(d => d.id), 0) + 1;
     } else {
       data = [...INITIAL_DATA];
@@ -1277,14 +1283,15 @@ function applyFilters() {
   filtered = data.filter(row => {
     const matchQ = !q || [row.company, row.address, row.website, row.role, row.notes, row.hmContact]
       .some(f => (f||'').toLowerCase().includes(q));
-    const matchStage = !stage || row.stage === stage;
+    const rowStage = normalizeStageValue(row.stage);
+    const matchStage = !stage || rowStage === stage;
     return matchQ && matchStage;
   });
 
   const [field, dir] = sort.split('-');
   filtered.sort((a, b) => {
-    let va = field === 'stage' ? STAGES.indexOf(a.stage) : (a[field]||'');
-    let vb = field === 'stage' ? STAGES.indexOf(b.stage) : (b[field]||'');
+    let va = field === 'stage' ? STAGES.indexOf(normalizeStageValue(a.stage)) : (a[field]||'');
+    let vb = field === 'stage' ? STAGES.indexOf(normalizeStageValue(b.stage)) : (b[field]||'');
     if (va < vb) return dir === 'asc' ? -1 : 1;
     if (va > vb) return dir === 'asc' ? 1 : -1;
     return 0;
@@ -1302,16 +1309,16 @@ function renderStats() {
     document.getElementById('statsBar').innerHTML = '';
     return;
   }
-  const active   = data.filter(d => !['Rejected','Withdrawn'].includes(d.stage)).length;
+  const active   = data.filter(d => ![NOT_MOVING_FORWARD_STAGE,'Withdrawn'].includes(normalizeStageValue(d.stage))).length;
   const advanced = data.filter(d => ['Phone Screen','Interview','Final Round','Offer'].includes(d.stage)).length;
-  const rejected = data.filter(d => d.stage === 'Rejected').length;
+  const notMovingForward = data.filter(d => normalizeStageValue(d.stage) === NOT_MOVING_FORWARD_STAGE).length;
   const rr = Math.round((total - data.filter(d => d.stage === 'Applied').length) / total * 100);
 
   document.getElementById('statsBar').innerHTML = `
     <div class="stat-item"><div class="stat-value">${total}</div><div class="stat-label">Total Applied</div></div>
     <div class="stat-item green"><div class="stat-value">${active}</div><div class="stat-label">Active</div></div>
     <div class="stat-item purple"><div class="stat-value">${advanced}</div><div class="stat-label">Advanced</div></div>
-    <div class="stat-item red"><div class="stat-value">${rejected}</div><div class="stat-label">Rejected</div></div>
+    <div class="stat-item red"><div class="stat-value">${notMovingForward}</div><div class="stat-label">Not Moving Forward</div></div>
     <div class="stat-item amber"><div class="stat-value">${rr}%</div><div class="stat-label">Response Rate</div></div>`;
 }
 
@@ -1322,6 +1329,7 @@ function render() {
 }
 
 function stageBadge(stage) {
+  stage = normalizeStageValue(stage);
   const cls = 'stage-' + stage.replace(/ /g, '-');
   return `<span class="stage-badge ${cls}"><span class="stage-dot"></span>${stage}</span>`;
 }
@@ -1418,7 +1426,7 @@ function renderTable() {
 
 function renderKanban() {
   const cols = STAGES.map(stage => {
-    const cards = filtered.filter(r => r.stage === stage);
+    const cards = filtered.filter(r => normalizeStageValue(r.stage) === stage);
     const cls = 'col-' + stage.replace(/ /g, '-');
     const cardHTML = cards.map(row => `
       <div class="kanban-card" onclick="openModal(${row.id})">

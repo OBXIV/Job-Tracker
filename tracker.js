@@ -6,7 +6,7 @@
  *   node tracker.js add --company "Acme" --address "123 Main St, Dallas, TX" --website "https://example.com" --role "IT Director" --notes "..."
  *   node tracker.js update --id 106 --stage "Phone Screen" --note "AI phone screen 5/28"
  *   node tracker.js update --company "Apex Systems" --stage "Phone Screen" --note "..."
- *   node tracker.js reject --company "Langham Hall" --note "Rejected via email 5/29"
+ *   node tracker.js reject --company "Langham Hall" --note "Not moving forward via email 5/29"
  *   node tracker.js search --query "ninja"
  *   node tracker.js list --stage Applied --limit 10
  *
@@ -26,6 +26,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const HTML_PATH = path.join(__dirname, 'index.html');
 const DEFAULT_SERVICE_ACCOUNT_PATH = path.join(__dirname, 'service-account.json');
 const PIPELINE_PATH = 'pipeline';
+const NOT_MOVING_FORWARD_STAGE = 'Not Moving Forward';
 
 function die(msg) {
   console.error('\n❌  ' + msg + '\n');
@@ -129,13 +130,14 @@ const VALID_STAGES = [
   'Interview',
   'Final Round',
   'Offer',
-  'Rejected',
+  NOT_MOVING_FORWARD_STAGE,
   'Withdrawn',
 ];
 
 function normalizeStage(stage) {
   if (!stage) return 'Applied';
   const cleaned = String(stage).trim().replace(/[-_]+/g, ' ').replace(/\s+/g, ' ');
+  if (cleaned.toLowerCase() === 'rejected') return NOT_MOVING_FORWARD_STAGE;
   const match = VALID_STAGES.find(s => s.toLowerCase() === cleaned.toLowerCase());
   if (!match) die('Invalid stage: "' + stage + '"\nValid stages: ' + VALID_STAGES.join(' | '));
   return match;
@@ -267,11 +269,24 @@ async function cmdUpdate(args) {
 async function cmdReject(args) {
   const rows = await readPipeline();
   const entry = chooseOne(findMatches(rows, args), args);
-  entry.stage = 'Rejected';
-  appendNote(entry, args.note || ('Rejected via email ' + shortDate()));
+  entry.stage = NOT_MOVING_FORWARD_STAGE;
+  appendNote(entry, args.note || ('Not moving forward via email ' + shortDate()));
   await writePipeline(rows);
-  console.log('✅ Rejected #' + entry.id + ': ' + entry.company + ' — ' + entry.role);
+  console.log('✅ Not moving forward #' + entry.id + ': ' + entry.company + ' — ' + entry.role);
   if (entry.notes) console.log('Notes: ' + entry.notes);
+}
+
+async function cmdMigrateRejectedStage() {
+  const rows = await readPipeline();
+  let count = 0;
+  for (const row of rows) {
+    if (row.stage === 'Rejected') {
+      row.stage = NOT_MOVING_FORWARD_STAGE;
+      count++;
+    }
+  }
+  if (count > 0) await writePipeline(rows);
+  console.log('✅ Migrated ' + count + ' entries from Rejected to ' + NOT_MOVING_FORWARD_STAGE + '.');
 }
 
 function shortDate() {
@@ -316,7 +331,7 @@ function usage() {
     'Usage:',
     '  node tracker.js add --company \"Acme\" [--address \"HQ address\"] [--website \"https://example.com\"] --role \"IT Director\" [--applied YYYY-MM-DD] [--stage Applied] [--contact \"Name\"] [--notes \"...\"]',
     '  node tracker.js update --id 106 --stage \"Phone Screen\" --note \"AI phone screen 5/28\"',
-    '  node tracker.js reject --company \"Langham Hall\" --note \"Rejected via email 5/29\"',
+    '  node tracker.js reject --company \"Langham Hall\" --note \"Not moving forward via email 5/29\"',
     '  node tracker.js search --query \"ninja\"',
     '  node tracker.js list --stage Applied --limit 10',
     '',
@@ -340,6 +355,7 @@ async function main() {
   if (command === 'add') return cmdAdd(args);
   if (command === 'update') return cmdUpdate(args);
   if (command === 'reject') return cmdReject(args);
+  if (command === 'migrate-rejected-stage') return cmdMigrateRejectedStage(args);
   if (command === 'search') return cmdSearch(args);
   if (command === 'list') return cmdList(args);
 
