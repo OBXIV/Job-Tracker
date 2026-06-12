@@ -12,25 +12,29 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #f4f6f9;
+      --bg: #f5f6f3;
+      --rail: #141414;
+      --rail2: #1f201d;
       --surface: #ffffff;
-      --surface2: #f8fafc;
-      --border: #e2e8f0;
-      --border2: #cbd5e1;
-      --text: #1e293b;
-      --text2: #64748b;
-      --text3: #94a3b8;
-      --primary: #3b82f6;
-      --primary-dark: #2563eb;
+      --surface2: #f8f9f6;
+      --surface3: #eef1ec;
+      --border: #e0e4dc;
+      --border2: #c8cec4;
+      --text: #20231f;
+      --text2: #626b5f;
+      --text3: #92998f;
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --ink: #111311;
 
-      --applied: #3b82f6;    --applied-bg: #eff6ff;
-      --outreach: #8b5cf6;   --outreach-bg: #f5f3ff;
-      --phone: #f59e0b;      --phone-bg: #fffbeb;
-      --interview: #f97316;  --interview-bg: #fff7ed;
-      --final: #ef4444;      --final-bg: #fef2f2;
-      --offer: #10b981;      --offer-bg: #ecfdf5;
-      --rejected: #6b7280;   --rejected-bg: #f9fafb;
-      --withdrawn: #94a3b8;  --withdrawn-bg: #f8fafc;
+      --applied: #2563eb;    --applied-bg: #eff5ff;
+      --outreach: #7c3aed;   --outreach-bg: #f4f0ff;
+      --phone: #b7791f;      --phone-bg: #fff7dd;
+      --interview: #c2410c;  --interview-bg: #fff3e8;
+      --final: #be123c;      --final-bg: #fff1f3;
+      --offer: #047857;      --offer-bg: #eaf7f0;
+      --rejected: #5f6660;   --rejected-bg: #f0f2ef;
+      --withdrawn: #7c8580;  --withdrawn-bg: #f4f6f4;
     }
 
     body {
@@ -39,7 +43,9 @@
       color: var(--text);
       min-height: 100vh;
       font-size: 14px;
+      overflow-x: hidden;
     }
+    a { color: inherit; }
 
     /* ── Setup Overlay ── */
     .setup-overlay {
@@ -208,7 +214,7 @@
       display: none;
       align-items: center;
       gap: 8px;
-      color: #cbd5e1;
+      color: var(--text2);
       font-size: 12px;
       max-width: 260px;
     }
@@ -225,24 +231,115 @@
     .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
     .user-email { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+    /* ── App shell ── */
+    .app-shell {
+      display: grid;
+      grid-template-columns: 220px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .side-rail {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      background: linear-gradient(180deg, var(--rail), var(--rail2));
+      color: #f8faf6;
+      padding: 18px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      z-index: 80;
+    }
+    .rail-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 8px 12px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .rail-mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: #f8faf6;
+      color: var(--rail);
+      font-size: 15px;
+      font-weight: 800;
+    }
+    .rail-title { font-size: 15px; font-weight: 700; line-height: 1.1; }
+    .rail-subtitle { color: #9da59b; font-size: 11px; margin-top: 3px; }
+    .rail-nav { display: flex; flex-direction: column; gap: 5px; }
+    .rail-btn {
+      width: 100%;
+      min-height: 38px;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      background: transparent;
+      color: #cfd5cd;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 8px 10px;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: left;
+      transition: background .15s, color .15s, border-color .15s;
+    }
+    .rail-btn:hover,
+    .rail-btn.active {
+      background: rgba(255,255,255,.08);
+      border-color: rgba(255,255,255,.1);
+      color: #fff;
+    }
+    .rail-icon {
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      display: grid;
+      place-items: center;
+      background: rgba(255,255,255,.08);
+      color: #fff;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+    .rail-footer {
+      margin-top: auto;
+      padding: 12px 8px 2px;
+      color: #9da59b;
+      font-size: 11px;
+      line-height: 1.45;
+      border-top: 1px solid rgba(255,255,255,.08);
+    }
+    .workspace {
+      min-width: 0;
+      padding: 18px 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
     /* ── Sync banner ── */
     .sync-banner {
       display: none;
-      padding: 9px 24px;
+      padding: 9px 12px;
       font-size: 13px;
       align-items: center;
       gap: 8px;
+      border-radius: 8px;
     }
     .sync-banner.connecting {
       display: flex;
       background: #eff6ff;
-      border-bottom: 1px solid #bfdbfe;
+      border: 1px solid #bfdbfe;
       color: #1d4ed8;
     }
     .sync-banner.error {
       display: flex;
       background: #fef2f2;
-      border-bottom: 1px solid #fca5a5;
+      border: 1px solid #fca5a5;
       color: #b91c1c;
     }
     .spin {
@@ -256,79 +353,126 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── Header ── */
-    header {
-      background: #1e293b; color: #fff;
-      padding: 0 24px; height: 56px;
-      display: flex; align-items: center; justify-content: space-between;
-      position: sticky; top: 0; z-index: 100;
+    /* ── Topbar ── */
+    .topbar {
+      display: grid;
+      grid-template-columns: minmax(220px, .8fr) minmax(280px, 1.2fr) auto;
+      align-items: center;
+      gap: 14px;
+      min-height: 56px;
     }
-    .header-left { display: flex; align-items: center; gap: 12px; }
-    .header-logo {
-      width: 32px; height: 32px;
-      background: var(--primary); border-radius: 8px;
-      display: grid; place-items: center; font-size: 16px;
-    }
-    header h1 { font-size: 16px; font-weight: 600; }
-    .header-right { display: flex; align-items: center; gap: 8px; }
+    .topbar-title h1 { font-size: 21px; font-weight: 760; line-height: 1.1; }
+    .topbar-title p { margin-top: 4px; font-size: 12px; color: var(--text2); }
+    .topbar-actions { display: flex; align-items: center; gap: 8px; justify-content: flex-end; min-width: 0; }
 
     /* ── Stats Bar ── */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      gap: 14px;
+      align-items: stretch;
+    }
     .stats-bar {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 0 24px;
-      display: flex; gap: 0;
-      min-height: 62px;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(120px, 1fr));
+      gap: 10px;
+      min-width: 0;
     }
     .stat-item {
-      padding: 14px 24px;
-      border-right: 1px solid var(--border);
-      display: flex; flex-direction: column; gap: 2px;
-      min-width: 120px;
+      min-height: 82px;
+      padding: 13px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: rgba(255,255,255,.82);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 1px 2px rgba(18,24,18,.04);
     }
-    .stat-item:first-child { padding-left: 0; }
-    .stat-value { font-size: 22px; font-weight: 700; color: var(--text); }
-    .stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--text2); font-weight: 500; }
-    .stat-item.green .stat-value { color: #10b981; }
-    .stat-item.amber .stat-value { color: #f59e0b; }
-    .stat-item.red   .stat-value { color: #ef4444; }
-    .stat-item.purple .stat-value { color: #8b5cf6; }
+    .stat-value { font-size: 24px; font-weight: 760; color: var(--text); line-height: 1; }
+    .stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: .05em; color: var(--text2); font-weight: 700; }
+    .stat-item.green { border-color: #bfe3d1; }
+    .stat-item.green .stat-value { color: #047857; }
+    .stat-item.amber { border-color: #ead7a1; }
+    .stat-item.amber .stat-value { color: #b7791f; }
+    .stat-item.red { border-color: #d4d9d1; }
+    .stat-item.red .stat-value { color: #5f6660; }
+    .stat-item.purple { border-color: #d8cef9; }
+    .stat-item.purple .stat-value { color: #7c3aed; }
+    .sitrep-card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--ink);
+      color: #f8faf6;
+      padding: 13px 14px;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 1px 2px rgba(18,24,18,.04);
+    }
+    .sitrep-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: #b8c0b6;
+      font-weight: 750;
+    }
+    .sitrep-list { display: flex; flex-direction: column; gap: 7px; }
+    .sitrep-item { min-width: 0; display: flex; justify-content: space-between; gap: 10px; font-size: 12px; }
+    .sitrep-item strong { color: #fff; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .sitrep-item span { color: #aeb6ac; white-space: nowrap; }
 
     /* ── Toolbar ── */
     .toolbar {
-      padding: 16px 24px;
-      display: flex; gap: 12px;
-      align-items: center; flex-wrap: wrap;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: rgba(255,255,255,.76);
+      padding: 10px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      box-shadow: 0 1px 2px rgba(18,24,18,.04);
     }
-    .search-wrap { position: relative; flex: 1; min-width: 200px; max-width: 360px; }
+    .search-wrap { position: relative; width: 100%; min-width: 220px; }
     .search-wrap input {
       width: 100%;
-      padding: 8px 12px 8px 36px;
-      border: 1px solid var(--border2);
+      padding: 10px 12px 10px 36px;
+      border: 1px solid var(--border);
       border-radius: 8px;
       background: var(--surface);
-      font-size: 13px; color: var(--text);
+      font-size: 13px;
+      color: var(--text);
       outline: none; transition: border-color .15s;
     }
-    .search-wrap input:focus { border-color: var(--primary); }
+    .search-wrap input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
     .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text3); pointer-events: none; }
     select, .btn {
-      padding: 8px 14px;
-      border: 1px solid var(--border2);
+      min-height: 36px;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
       border-radius: 8px;
       background: var(--surface);
       font-size: 13px; color: var(--text);
       cursor: pointer; outline: none; font-family: inherit;
     }
     select:focus { border-color: var(--primary); }
-    .btn { display: flex; align-items: center; gap: 6px; font-weight: 500; transition: all .15s; }
-    .btn:hover { background: var(--surface2); }
+    .btn { display: flex; align-items: center; gap: 6px; font-weight: 650; transition: all .15s; text-decoration: none; }
+    .btn:hover { background: var(--surface2); border-color: var(--border2); }
     .btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
     .btn.primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); }
+    .btn.dark { background: var(--ink); color: #fff; border-color: var(--ink); }
+    .btn.ghost { background: transparent; }
+    .btn:disabled { opacity: .55; cursor: not-allowed; }
 
     .view-toggle {
       display: flex;
-      border: 1px solid var(--border2);
+      border: 1px solid var(--border);
       border-radius: 8px; overflow: hidden;
       background: var(--surface);
     }
@@ -339,47 +483,61 @@
       display: flex; align-items: center; gap: 5px;
       transition: all .15s;
     }
-    .view-toggle button.active { background: var(--primary); color: #fff; }
+    .view-toggle button.active { background: var(--ink); color: #fff; }
     .view-toggle button:not(.active):hover { background: var(--surface2); }
     .toolbar-right { margin-left: auto; display: flex; gap: 8px; }
 
     /* ── Table ── */
-    .view-container { padding: 0 24px 32px; }
-    .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .content-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 360px;
+      gap: 14px;
+      align-items: start;
+    }
+    .view-container { min-width: 0; }
+    .table-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 1px 2px rgba(18,24,18,.04);
+    }
     table { width: 100%; border-collapse: collapse; }
     thead th {
-      padding: 11px 14px; text-align: left;
+      padding: 10px 12px; text-align: left;
       font-size: 11px; font-weight: 600;
       text-transform: uppercase; letter-spacing: .05em; color: var(--text2);
-      background: var(--surface2); border-bottom: 1px solid var(--border);
+      background: #fbfcfa; border-bottom: 1px solid var(--border);
       cursor: pointer; user-select: none; white-space: nowrap;
     }
     thead th:hover { color: var(--text); }
     tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
     tbody tr:last-child { border-bottom: none; }
-    tbody tr:hover { background: var(--surface2); }
-    tbody td { padding: 12px 14px; vertical-align: middle; }
+    tbody tr:hover { background: #fafbf8; }
+    tbody tr.selected { background: #f1f6ff; box-shadow: inset 3px 0 0 var(--primary); }
+    tbody td { padding: 11px 12px; vertical-align: middle; }
     .td-num { color: var(--text3); font-size: 12px; width: 40px; }
-    .td-company { font-weight: 600; }
+    .td-company { font-weight: 700; min-width: 180px; }
+    .td-company .company-sub { margin-top: 3px; color: var(--text3); font-size: 11px; font-weight: 500; line-height: 1.35; }
     .td-address { color: var(--text2); font-size: 12px; max-width: 240px; line-height: 1.35; }
     .td-website { color: var(--primary); font-size: 12px; max-width: 180px; line-height: 1.35; word-break: break-word; }
-    .td-role { color: var(--text2); font-size: 13px; max-width: 220px; }
+    .td-role { color: #3d463a; font-size: 13px; max-width: 260px; line-height: 1.35; }
     .td-date { color: var(--text2); white-space: nowrap; font-size: 13px; }
     .td-contact { color: var(--text2); font-size: 13px; }
-    .td-notes { color: var(--text2); font-size: 12px; max-width: 260px; }
-    .td-actions { white-space: nowrap; width: 80px; }
+    .td-notes { color: var(--text2); font-size: 12px; max-width: 360px; line-height: 1.45; }
+    .td-actions { white-space: nowrap; width: 78px; text-align: right; }
     .icon-btn {
-      background: none; border: none; cursor: pointer; padding: 4px 6px;
+      background: transparent; border: 1px solid transparent; cursor: pointer; padding: 4px 6px;
       border-radius: 6px; color: var(--text3); font-size: 15px;
       transition: all .15s;
     }
-    .icon-btn:hover { background: var(--surface2); color: var(--text); }
+    .icon-btn:hover { background: var(--surface2); border-color: var(--border); color: var(--text); }
     .icon-btn.delete:hover { background: #fef2f2; color: #ef4444; }
 
     /* ── Stage Badge ── */
     .stage-badge {
       display: inline-flex; align-items: center; gap: 5px;
-      padding: 3px 9px; border-radius: 20px;
+      padding: 4px 9px; border-radius: 999px;
       font-size: 11px; font-weight: 600; white-space: nowrap;
     }
     .stage-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
@@ -433,6 +591,117 @@
     .col-Offer         { background: var(--offer-bg);     border-color: var(--offer);     color: #047857; }
     .col-Not-Moving-Forward { background: var(--rejected-bg);  border-color: #d1d5db;          color: var(--rejected); }
     .col-Withdrawn     { background: var(--withdrawn-bg); border-color: #cbd5e1;          color: var(--withdrawn); }
+
+    /* ── Inspector ── */
+    .inspector {
+      position: sticky;
+      top: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-width: 0;
+    }
+    .inspector-card,
+    .activity-card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: rgba(255,255,255,.88);
+      box-shadow: 0 1px 2px rgba(18,24,18,.04);
+      overflow: hidden;
+    }
+    .inspector-empty {
+      padding: 22px;
+      color: var(--text2);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .inspector-head {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+      background: #fbfcfa;
+    }
+    .inspector-kicker {
+      color: var(--text3);
+      font-size: 10px;
+      font-weight: 750;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      margin-bottom: 8px;
+    }
+    .inspector-company {
+      font-size: 20px;
+      font-weight: 780;
+      line-height: 1.15;
+      margin-bottom: 6px;
+    }
+    .inspector-role {
+      color: var(--text2);
+      font-size: 13px;
+      line-height: 1.4;
+      margin-bottom: 12px;
+    }
+    .inspector-body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 12px; }
+    .field-list { display: grid; gap: 10px; }
+    .field-row {
+      display: grid;
+      grid-template-columns: 78px minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    .field-label {
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      font-size: 10px;
+      font-weight: 750;
+    }
+    .field-value { color: var(--text); min-width: 0; overflow-wrap: anywhere; }
+    .field-value a { color: var(--primary); text-decoration: none; }
+    .field-value a:hover { text-decoration: underline; }
+    .inspector-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding-top: 2px;
+    }
+    .inspector-actions .btn { justify-content: center; }
+    .tag-stack { display: flex; flex-wrap: wrap; gap: 6px; }
+    .note-tag {
+      max-width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 4px 8px;
+      background: var(--surface2);
+      color: var(--text2);
+      font-size: 11px;
+      line-height: 1.2;
+    }
+    .activity-card { padding: 14px; }
+    .activity-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      color: var(--text2);
+      font-size: 10px;
+      font-weight: 750;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    .activity-list { display: grid; gap: 9px; }
+    .activity-item {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+      min-width: 0;
+      font-size: 12px;
+    }
+    .activity-main { min-width: 0; }
+    .activity-company { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .activity-meta { color: var(--text3); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
     /* ── Parser ── */
     .parser-shell {
@@ -554,13 +823,47 @@
     .kanban-board::-webkit-scrollbar-track { background: transparent; }
     .kanban-board::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
 
+    @media (max-width: 1180px) {
+      .dashboard-grid,
+      .content-grid { grid-template-columns: 1fr; }
+      .inspector { position: static; }
+    }
+
+    @media (max-width: 900px) {
+      .app-shell { grid-template-columns: 1fr; }
+      .side-rail {
+        position: sticky;
+        top: 0;
+        height: auto;
+        flex-direction: row;
+        align-items: center;
+        overflow-x: auto;
+        padding: 10px;
+      }
+      .rail-brand { border-bottom: none; padding: 0 8px 0 0; flex-shrink: 0; }
+      .rail-subtitle,
+      .rail-footer { display: none; }
+      .rail-nav { flex-direction: row; }
+      .rail-btn { width: auto; min-width: max-content; }
+      .workspace { padding: 14px; }
+      .topbar { grid-template-columns: 1fr; }
+      .topbar-actions { justify-content: flex-start; flex-wrap: wrap; }
+      .stats-bar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
     @media (max-width: 640px) {
-      .stats-bar { overflow-x: auto; }
-      .stat-item { min-width: 100px; padding: 12px 16px; }
-      .toolbar { padding: 12px 16px; }
-      .view-container { padding: 0 16px 24px; }
+      .stats-bar { grid-template-columns: 1fr; }
+      .toolbar { align-items: stretch; }
+      .toolbar select,
+      .toolbar .view-toggle,
+      .toolbar .toolbar-right { width: 100%; }
+      .view-toggle button { flex: 1; justify-content: center; }
+      .toolbar-right { margin-left: 0; flex-direction: column; }
+      .table-wrap { overflow-x: auto; }
+      table { min-width: 760px; }
       .form-row { grid-template-columns: 1fr; }
       .setup-card { padding: 24px; margin-top: 16px; }
+      .inspector-actions { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -688,148 +991,172 @@
      MAIN APP
      ══════════════════════════════════════════════════════ -->
 
-<!-- Header -->
-<header>
-  <div class="header-left">
-    <div class="header-logo">📋</div>
-    <h1>The Dossier</h1>
-  </div>
-  <div class="header-right">
-    <div class="user-pill" id="userPill">
-      <div class="user-avatar" id="userAvatar"></div>
-      <span class="user-email" id="userEmail"></span>
+<div class="app-shell">
+  <aside class="side-rail">
+    <div class="rail-brand">
+      <div class="rail-mark">D</div>
+      <div>
+        <div class="rail-title">The Dossier</div>
+        <div class="rail-subtitle">Pipeline intelligence</div>
+      </div>
     </div>
-    <button class="btn" onclick="signOut()" id="signOutBtn" style="display:none">Sign Out</button>
-    <button class="btn primary" onclick="openModal()">+ Add Application</button>
-  </div>
-</header>
+    <nav class="rail-nav" aria-label="Primary">
+      <button class="rail-btn active" id="navPipeline" onclick="setView('table')"><span class="rail-icon">P</span><span>Pipeline</span></button>
+      <button class="rail-btn" id="navBoard" onclick="setView('kanban')"><span class="rail-icon">B</span><span>Board</span></button>
+      <button class="rail-btn" id="navParser" onclick="setView('parse')"><span class="rail-icon">A</span><span>Add From JD</span></button>
+      <button class="rail-btn" onclick="focusSearch()"><span class="rail-icon">S</span><span>Search</span></button>
+      <button class="rail-btn" onclick="openSettings()"><span class="rail-icon">G</span><span>Settings</span></button>
+    </nav>
+    <div class="rail-footer">Track signal, movement, and next actions without losing the thread.</div>
+  </aside>
 
-<!-- Sync Banner -->
-<div class="sync-banner" id="syncBanner">
-  <span class="spin" id="syncSpinner"></span>
-  <span id="syncMsg">Connecting to Firebase…</span>
-</div>
-
-<!-- Stats Bar -->
-<div class="stats-bar" id="statsBar"></div>
-
-<!-- Toolbar -->
-<div class="toolbar">
-  <div class="search-wrap">
-    <span class="search-icon">🔍</span>
-    <input type="text" id="searchInput" placeholder="Search company, address, website, role, notes…" oninput="applyFilters()">
-  </div>
-  <select id="stageFilter" onchange="applyFilters()">
-    <option value="">All Stages</option>
-    <option>Applied</option>
-    <option>HM Outreach</option>
-    <option>Phone Screen</option>
-    <option>Interview</option>
-    <option>Final Round</option>
-    <option>Offer</option>
-    <option>Not Moving Forward</option>
-    <option>Withdrawn</option>
-  </select>
-  <select id="sortField" onchange="applyFilters()">
-    <option value="applied-desc">Date: Newest First</option>
-    <option value="applied-asc">Date: Oldest First</option>
-    <option value="company-asc">Company A→Z</option>
-    <option value="company-desc">Company Z→A</option>
-    <option value="address-asc">Address A→Z</option>
-    <option value="address-desc">Address Z→A</option>
-    <option value="website-asc">Website A→Z</option>
-    <option value="website-desc">Website Z→A</option>
-    <option value="stage-asc">Stage</option>
-  </select>
-  <div class="toolbar-right">
-    <div class="view-toggle">
-      <button id="btnTable" class="active" onclick="setView('table')">☰ Table</button>
-      <button id="btnKanban" onclick="setView('kanban')">⊞ Kanban</button>
-      <button id="btnParse" onclick="setView('parse')">✎ Parse Job</button>
-    </div>
-    <button class="icon-btn" title="Settings" onclick="openSettings()" style="font-size:18px">⚙️</button>
-  </div>
-</div>
-
-<!-- Content -->
-<div class="view-container">
-  <div id="tableView"></div>
-  <div id="kanbanView" style="display:none"></div>
-  <div id="parseView" style="display:none">
-    <div class="parser-shell">
-      <div class="parser-panel">
-        <div class="parser-panel-header">
-          <div>
-            <div class="parser-panel-title">Paste Job Posting</div>
-            <div class="parser-panel-sub">Drop the full posting here. The parser will make a first pass and you can edit before saving.</div>
-          </div>
+  <main class="workspace">
+    <header class="topbar">
+      <div class="topbar-title">
+        <h1>The Dossier</h1>
+        <p>Job pipeline command center</p>
+      </div>
+      <div class="search-wrap">
+        <span class="search-icon">⌕</span>
+        <input type="text" id="searchInput" placeholder="Search company, role, address, website, notes..." oninput="applyFilters()">
+      </div>
+      <div class="topbar-actions">
+        <div class="user-pill" id="userPill">
+          <div class="user-avatar" id="userAvatar"></div>
+          <span class="user-email" id="userEmail"></span>
         </div>
-        <div class="parser-body">
-          <textarea id="jobPasteInput" placeholder="Paste the job title, company, location, and full posting text here..."></textarea>
-          <div class="parser-actions">
-            <button class="btn primary" onclick="parseJobPosting()">Parse Posting</button>
-            <button class="btn" onclick="clearParsedJob()">Clear</button>
+        <button class="btn ghost" onclick="signOut()" id="signOutBtn" style="display:none">Sign Out</button>
+        <button class="btn primary" onclick="openModal()">Add Application</button>
+      </div>
+    </header>
+
+    <div class="sync-banner" id="syncBanner">
+      <span class="spin" id="syncSpinner"></span>
+      <span id="syncMsg">Connecting to Firebase...</span>
+    </div>
+
+    <section class="dashboard-grid">
+      <div class="stats-bar" id="statsBar"></div>
+      <div class="sitrep-card" id="sitrepPanel"></div>
+    </section>
+
+    <div class="toolbar">
+      <select id="stageFilter" onchange="applyFilters()">
+        <option value="">All Stages</option>
+        <option>Applied</option>
+        <option>HM Outreach</option>
+        <option>Phone Screen</option>
+        <option>Interview</option>
+        <option>Final Round</option>
+        <option>Offer</option>
+        <option>Not Moving Forward</option>
+        <option>Withdrawn</option>
+      </select>
+      <select id="sortField" onchange="applyFilters()">
+        <option value="applied-desc">Date: Newest First</option>
+        <option value="applied-asc">Date: Oldest First</option>
+        <option value="company-asc">Company A-Z</option>
+        <option value="company-desc">Company Z-A</option>
+        <option value="address-asc">Address A-Z</option>
+        <option value="address-desc">Address Z-A</option>
+        <option value="website-asc">Website A-Z</option>
+        <option value="website-desc">Website Z-A</option>
+        <option value="stage-asc">Stage</option>
+      </select>
+      <div class="toolbar-right">
+        <div class="view-toggle">
+          <button id="btnTable" class="active" onclick="setView('table')">Table</button>
+          <button id="btnKanban" onclick="setView('kanban')">Board</button>
+          <button id="btnParse" onclick="setView('parse')">Parse Job</button>
+        </div>
+        <button class="btn" onclick="openSettings()">Settings</button>
+      </div>
+    </div>
+
+    <div class="content-grid">
+      <div class="view-container">
+        <div id="tableView"></div>
+        <div id="kanbanView" style="display:none"></div>
+        <div id="parseView" style="display:none">
+          <div class="parser-shell">
+            <div class="parser-panel">
+              <div class="parser-panel-header">
+                <div>
+                  <div class="parser-panel-title">Paste Job Posting</div>
+                  <div class="parser-panel-sub">Drop the full posting here. The parser will make a first pass and you can edit before saving.</div>
+                </div>
+              </div>
+              <div class="parser-body">
+                <textarea id="jobPasteInput" placeholder="Paste the job title, company, location, and full posting text here..."></textarea>
+                <div class="parser-actions">
+                  <button class="btn primary" onclick="parseJobPosting()">Parse Posting</button>
+                  <button class="btn" onclick="clearParsedJob()">Clear</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="parser-panel">
+              <div class="parser-panel-header">
+                <div>
+                  <div class="parser-panel-title">Parsed Application</div>
+                  <div class="parser-panel-sub">Review and adjust these fields before adding to the tracker.</div>
+                </div>
+              </div>
+              <div class="parser-body parser-preview-grid">
+                <div class="parser-note">Parser output is intentionally editable. Company names are the most likely field to need a quick human check.</div>
+                <div class="form-group">
+                  <label>Company *</label>
+                  <input type="text" id="pCompany" placeholder="e.g. Acme Corp">
+                </div>
+                <div class="form-group">
+                  <label>Address</label>
+                  <input type="text" id="pAddress" placeholder="HQ address">
+                </div>
+                <div class="form-group">
+                  <label>Website</label>
+                  <input type="text" id="pWebsite" placeholder="https://company.com">
+                </div>
+                <div class="form-group">
+                  <label>Role *</label>
+                  <input type="text" id="pRole" placeholder="e.g. Director of IT">
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Date Applied</label>
+                    <input type="date" id="pApplied">
+                  </div>
+                  <div class="form-group">
+                    <label>Stage</label>
+                    <select class="form-select" id="pStage">
+                      <option>Applied</option>
+                      <option>HM Outreach</option>
+                      <option>Phone Screen</option>
+                      <option>Interview</option>
+                      <option>Final Round</option>
+                      <option>Offer</option>
+                      <option>Not Moving Forward</option>
+                      <option>Withdrawn</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>HM Contact</label>
+                  <input type="text" id="pContact" placeholder="Name of hiring manager or recruiter">
+                </div>
+                <div class="form-group">
+                  <label>Notes</label>
+                  <textarea id="pNotes" placeholder="Location, salary, remote/hybrid, stack, leadership scope..."></textarea>
+                </div>
+                <button class="btn primary" onclick="saveParsedJob()">Add to Tracker</button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="parser-panel">
-        <div class="parser-panel-header">
-          <div>
-            <div class="parser-panel-title">Parsed Application</div>
-            <div class="parser-panel-sub">Review and adjust these fields before adding to the tracker.</div>
-          </div>
-        </div>
-        <div class="parser-body parser-preview-grid">
-          <div class="parser-note">Parser output is intentionally editable. Company names are the most likely field to need a quick human check.</div>
-          <div class="form-group">
-            <label>Company *</label>
-            <input type="text" id="pCompany" placeholder="e.g. Acme Corp">
-          </div>
-          <div class="form-group">
-            <label>Address</label>
-            <input type="text" id="pAddress" placeholder="HQ address">
-          </div>
-          <div class="form-group">
-            <label>Website</label>
-            <input type="text" id="pWebsite" placeholder="https://company.com">
-          </div>
-          <div class="form-group">
-            <label>Role *</label>
-            <input type="text" id="pRole" placeholder="e.g. Director of IT">
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Date Applied</label>
-              <input type="date" id="pApplied">
-            </div>
-            <div class="form-group">
-              <label>Stage</label>
-              <select class="form-select" id="pStage">
-                <option>Applied</option>
-                <option>HM Outreach</option>
-                <option>Phone Screen</option>
-                <option>Interview</option>
-                <option>Final Round</option>
-                <option>Offer</option>
-                <option>Not Moving Forward</option>
-                <option>Withdrawn</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>HM Contact</label>
-            <input type="text" id="pContact" placeholder="Name of hiring manager or recruiter">
-          </div>
-          <div class="form-group">
-            <label>Notes</label>
-            <textarea id="pNotes" placeholder="Location, salary, remote/hybrid, stack, leadership scope..."></textarea>
-          </div>
-          <button class="btn primary" onclick="saveParsedJob()">Add to Tracker</button>
-        </div>
-      </div>
+      <aside class="inspector" id="inspector"></aside>
     </div>
-  </div>
+  </main>
 </div>
 
 <!-- Add/Edit Modal -->
@@ -1048,6 +1375,7 @@ let db = null;
 let auth = null;
 let currentUser = null;
 let isListening = false;
+let selectedEntryId = null;
 
 // ── Firebase Setup ────────────────────────────────────────────────────────────
 function getSavedConfig() {
@@ -1297,22 +1625,23 @@ function applyFilters() {
     return 0;
   });
 
+  if (!filtered.some(row => row.id === selectedEntryId)) {
+    selectedEntryId = filtered[0] ? filtered[0].id : null;
+  }
+
   currentPage = 1;
   renderStats();
+  renderSitrep();
   render();
 }
 
 // ── Stats ─────────────────────────────────────────────────────────────────────
 function renderStats() {
   const total = data.length;
-  if (total === 0) {
-    document.getElementById('statsBar').innerHTML = '';
-    return;
-  }
   const active   = data.filter(d => ![NOT_MOVING_FORWARD_STAGE,'Withdrawn'].includes(normalizeStageValue(d.stage))).length;
-  const advanced = data.filter(d => ['Phone Screen','Interview','Final Round','Offer'].includes(d.stage)).length;
+  const advanced = data.filter(d => ['Phone Screen','Interview','Final Round','Offer'].includes(normalizeStageValue(d.stage))).length;
   const notMovingForward = data.filter(d => normalizeStageValue(d.stage) === NOT_MOVING_FORWARD_STAGE).length;
-  const rr = Math.round((total - data.filter(d => d.stage === 'Applied').length) / total * 100);
+  const rr = total ? Math.round((total - data.filter(d => normalizeStageValue(d.stage) === 'Applied').length) / total * 100) : 0;
 
   document.getElementById('statsBar').innerHTML = `
     <div class="stat-item"><div class="stat-value">${total}</div><div class="stat-label">Total Applied</div></div>
@@ -1322,10 +1651,37 @@ function renderStats() {
     <div class="stat-item amber"><div class="stat-value">${rr}%</div><div class="stat-label">Response Rate</div></div>`;
 }
 
+function renderSitrep() {
+  const panel = document.getElementById('sitrepPanel');
+  if (!panel) return;
+  if (!data.length) {
+    panel.innerHTML = `
+      <div class="sitrep-title"><span>SITREP</span><span>Standby</span></div>
+      <div class="sitrep-list">
+        <div class="sitrep-item"><strong>No live records yet</strong><span>--</span></div>
+      </div>`;
+    return;
+  }
+
+  const recent = [...data]
+    .sort((a, b) => Number(b.id || 0) - Number(a.id || 0))
+    .slice(0, 3);
+  panel.innerHTML = `
+    <div class="sitrep-title"><span>SITREP</span><span>${fmtDate(todayISO())}</span></div>
+    <div class="sitrep-list">
+      ${recent.map(row => `
+        <div class="sitrep-item">
+          <strong>${esc(row.company)}</strong>
+          <span>${esc(normalizeStageValue(row.stage))}</span>
+        </div>`).join('')}
+    </div>`;
+}
+
 // ── Render ────────────────────────────────────────────────────────────────────
 function render() {
   if (currentView === 'table') renderTable();
   else if (currentView === 'kanban') renderKanban();
+  renderInspector();
 }
 
 function stageBadge(stage) {
@@ -1376,19 +1732,19 @@ function renderTable() {
   }
 
   const rows = page.map(row => `
-    <tr>
+    <tr class="${row.id === selectedEntryId ? 'selected' : ''}" onclick="selectEntry(${row.id})">
       <td class="td-num">${row.id}</td>
-      <td class="td-company">${esc(row.company)}</td>
-      <td class="td-address">${esc(row.address)}</td>
-      <td class="td-website">${row.website ? renderWebsiteLink(row.website) : ''}</td>
+      <td class="td-company">
+        <div>${esc(row.company)}</div>
+        <div class="company-sub">${esc(row.address || normalizeWebsite(row.website) || 'No HQ on file')}</div>
+      </td>
       <td class="td-role">${esc(row.role)}</td>
       <td class="td-date">${fmtDate(row.applied)}</td>
       <td>${stageBadge(row.stage)}</td>
-      <td class="td-contact">${esc(row.hmContact)}</td>
       <td class="td-notes">${esc(row.notes)}</td>
       <td class="td-actions">
-        <button class="icon-btn" onclick="openModal(${row.id})" title="Edit">✏️</button>
-        <button class="icon-btn delete" onclick="deleteEntry(${row.id})" title="Delete">🗑</button>
+        <button class="icon-btn" onclick="event.stopPropagation(); openModal(${row.id})" title="Edit">Edit</button>
+        <button class="icon-btn delete" onclick="event.stopPropagation(); deleteEntry(${row.id})" title="Delete">Del</button>
       </td>
     </tr>`).join('');
 
@@ -1411,8 +1767,8 @@ function renderTable() {
       <table>
         <thead>
           <tr>
-            <th>#</th><th>Company</th><th>Address</th><th>Website</th><th>Role</th><th>Applied</th>
-            <th>Stage</th><th>HM Contact</th><th>Notes</th><th></th>
+            <th>#</th><th>Company</th><th>Role</th><th>Applied</th>
+            <th>Stage</th><th>Notes</th><th></th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
@@ -1424,12 +1780,76 @@ function renderTable() {
     </div>`;
 }
 
+function selectEntry(id) {
+  selectedEntryId = id;
+  render();
+}
+
+function renderInspector() {
+  const panel = document.getElementById('inspector');
+  if (!panel) return;
+  const row = data.find(d => d.id === selectedEntryId) || filtered[0] || data[0];
+  if (!row) {
+    panel.innerHTML = `
+      <div class="inspector-card">
+        <div class="inspector-empty">Select an application to view its dossier.</div>
+      </div>`;
+    return;
+  }
+  selectedEntryId = row.id;
+  const website = normalizeWebsite(row.website);
+  const tags = String(row.notes || '')
+    .split('·')
+    .map(part => part.trim())
+    .filter(Boolean)
+    .slice(0, 10);
+  const recent = [...data]
+    .sort((a, b) => Number(b.id || 0) - Number(a.id || 0))
+    .slice(0, 6);
+
+  panel.innerHTML = `
+    <div class="inspector-card">
+      <div class="inspector-head">
+        <div class="inspector-kicker">Selected dossier #${row.id}</div>
+        <div class="inspector-company">${esc(row.company)}</div>
+        <div class="inspector-role">${esc(row.role)}</div>
+        ${stageBadge(row.stage)}
+      </div>
+      <div class="inspector-body">
+        <div class="field-list">
+          <div class="field-row"><div class="field-label">Applied</div><div class="field-value">${esc(fmtDate(row.applied))}</div></div>
+          <div class="field-row"><div class="field-label">HQ</div><div class="field-value">${esc(row.address || 'Not captured')}</div></div>
+          <div class="field-row"><div class="field-label">Website</div><div class="field-value">${website ? `<a href="${esc(website)}" target="_blank" rel="noopener">${esc(website)}</a>` : 'Not captured'}</div></div>
+          <div class="field-row"><div class="field-label">Contact</div><div class="field-value">${esc(row.hmContact || 'None')}</div></div>
+        </div>
+        ${tags.length ? `<div class="tag-stack">${tags.map(tag => `<span class="note-tag">${esc(tag)}</span>`).join('')}</div>` : ''}
+        <div class="inspector-actions">
+          <button class="btn dark" onclick="openModal(${row.id})">Edit</button>
+          ${website ? `<a class="btn" href="${esc(website)}" target="_blank" rel="noopener">Website</a>` : `<button class="btn" disabled>Website</button>`}
+        </div>
+      </div>
+    </div>
+    <div class="activity-card">
+      <div class="activity-title"><span>Recent Movement</span><span>${recent.length}</span></div>
+      <div class="activity-list">
+        ${recent.map(item => `
+          <div class="activity-item">
+            <div class="activity-main">
+              <div class="activity-company">${esc(item.company)}</div>
+              <div class="activity-meta">${esc(item.role)} · ${esc(fmtDate(item.applied))}</div>
+            </div>
+            ${stageBadge(item.stage)}
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
 function renderKanban() {
   const cols = STAGES.map(stage => {
     const cards = filtered.filter(r => normalizeStageValue(r.stage) === stage);
     const cls = 'col-' + stage.replace(/ /g, '-');
     const cardHTML = cards.map(row => `
-      <div class="kanban-card" onclick="openModal(${row.id})">
+      <div class="kanban-card" onclick="selectEntry(${row.id})">
         <div class="kanban-card-company">${esc(row.company)}</div>
         ${row.address ? `<div class="kanban-card-address">${esc(row.address)}</div>` : ''}
         ${row.website ? `<div class="kanban-card-website">${esc(normalizeWebsite(row.website) || row.website)}</div>` : ''}
@@ -1461,8 +1881,16 @@ function setView(v) {
   document.getElementById('btnTable').classList.toggle('active',  v === 'table');
   document.getElementById('btnKanban').classList.toggle('active', v === 'kanban');
   document.getElementById('btnParse').classList.toggle('active',  v === 'parse');
+  document.getElementById('navPipeline').classList.toggle('active', v === 'table');
+  document.getElementById('navBoard').classList.toggle('active', v === 'kanban');
+  document.getElementById('navParser').classList.toggle('active', v === 'parse');
   if (v === 'parse') ensureParserDefaults();
   render();
+}
+
+function focusSearch() {
+  setView('table');
+  document.getElementById('searchInput').focus();
 }
 
 // ── Modal ─────────────────────────────────────────────────────────────────────
@@ -1478,7 +1906,7 @@ function openModal(id) {
     document.getElementById('fWebsite').value = row.website || '';
     document.getElementById('fRole').value    = row.role;
     document.getElementById('fApplied').value = (row.applied||'').slice(0,10) || today;
-    document.getElementById('fStage').value   = row.stage;
+    document.getElementById('fStage').value   = normalizeStageValue(row.stage);
     document.getElementById('fContact').value = row.hmContact;
     document.getElementById('fNotes').value   = row.notes;
   } else {
@@ -1534,9 +1962,11 @@ function saveEntry() {
   if (id) {
     const idx = data.findIndex(d => d.id === +id);
     data[idx] = entry;
+    selectedEntryId = entry.id;
     toast('Application updated', 'green');
   } else {
     data.unshift(entry);
+    selectedEntryId = entry.id;
     toast('Application added', 'green');
   }
   save();
@@ -1547,6 +1977,7 @@ function saveEntry() {
 function deleteEntry(id) {
   if (!confirm('Delete this application?')) return;
   data = data.filter(d => d.id !== id);
+  if (selectedEntryId === id) selectedEntryId = data[0] ? data[0].id : null;
   save();
   applyFilters();
   toast('Deleted');
@@ -1913,6 +2344,7 @@ function saveParsedJob() {
   };
 
   data.unshift(entry);
+  selectedEntryId = entry.id;
   save();
   clearParsedJob();
   applyFilters();
