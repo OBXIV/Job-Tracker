@@ -12,22 +12,28 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #f5f6f3;
-      --rail: #141414;
-      --rail2: #1f201d;
+      --bg: #eef1f6;
+      --rail: #0c1c38;
+      --rail2: #0a162c;
       --surface: #ffffff;
-      --surface2: #f8f9f6;
-      --surface3: #eef1ec;
-      --border: #e0e4dc;
-      --border2: #c8cec4;
-      --text: #20231f;
-      --text2: #626b5f;
-      --text3: #92998f;
-      --primary: #2563eb;
-      --primary-dark: #1d4ed8;
-      --ink: #111311;
+      --surface2: #f5f7fb;
+      --surface3: #e9edf4;
+      --border: #dde3ee;
+      --border2: #c4cddd;
+      --text: #16202e;
+      --text2: #5a6678;
+      --text3: #8b95a7;
+      --navy: #0e2147;
+      --navy-700: #16335f;
+      --navy-300: #2d4d82;
+      --gold: #c8a24a;
+      --gold-bright: #e2bd63;
+      --gold-soft: #f6eccf;
+      --primary: #0e2147;
+      --primary-dark: #0a1830;
+      --ink: #0c1c38;
 
-      --applied: #2563eb;    --applied-bg: #eff5ff;
+      --applied: #2d4d82;    --applied-bg: #eaf0fa;
       --outreach: #7c3aed;   --outreach-bg: #f4f0ff;
       --phone: #b7791f;      --phone-bg: #fff7dd;
       --interview: #c2410c;  --interview-bg: #fff3e8;
@@ -262,8 +268,8 @@
       border-radius: 8px;
       display: grid;
       place-items: center;
-      background: #f8faf6;
-      color: var(--rail);
+      background: linear-gradient(135deg, var(--gold-bright), var(--gold));
+      color: #0c1c38;
       font-size: 15px;
       font-weight: 800;
     }
@@ -288,11 +294,16 @@
       text-align: left;
       transition: background .15s, color .15s, border-color .15s;
     }
-    .rail-btn:hover,
+    .rail-btn:hover {
+      background: rgba(255,255,255,.08);
+      border-color: rgba(255,255,255,.1);
+      color: #fff;
+    }
     .rail-btn.active {
       background: rgba(255,255,255,.08);
       border-color: rgba(255,255,255,.1);
       color: #fff;
+      box-shadow: inset 2px 0 0 var(--gold);
     }
     .rail-icon {
       width: 20px;
@@ -400,17 +411,27 @@
     .stat-item.purple { border-color: #d8cef9; }
     .stat-item.purple .stat-value { color: #7c3aed; }
     .sitrep-card {
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: var(--ink);
-      color: #f8faf6;
-      padding: 13px 14px;
+      border: 1px solid var(--navy-700);
+      border-radius: 10px;
+      background: linear-gradient(155deg, var(--navy), var(--navy-700));
+      color: #f3f6fc;
+      padding: 14px 16px;
       min-width: 0;
       display: flex;
       flex-direction: column;
       gap: 10px;
-      box-shadow: 0 1px 2px rgba(18,24,18,.04);
+      box-shadow: 0 2px 8px rgba(8,16,32,.16);
+      cursor: pointer;
+      position: relative;
+      transition: transform .15s, box-shadow .15s;
+      user-select: none;
     }
+    .sitrep-card::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+      width: 3px; border-radius: 10px 0 0 10px;
+      background: linear-gradient(180deg, var(--gold-bright), var(--gold));
+    }
+    .sitrep-card:hover { transform: translateY(-1px); box-shadow: 0 10px 26px rgba(8,16,32,.24); }
     .sitrep-title {
       display: flex;
       align-items: center;
@@ -418,14 +439,71 @@
       gap: 8px;
       font-size: 11px;
       text-transform: uppercase;
-      letter-spacing: .05em;
-      color: #b8c0b6;
-      font-weight: 750;
+      letter-spacing: .08em;
+      color: var(--gold-bright);
+      font-weight: 800;
     }
+    .sitrep-title span:last-child { color: #9fb0cc; font-weight: 600; letter-spacing: .02em; }
     .sitrep-list { display: flex; flex-direction: column; gap: 7px; }
     .sitrep-item { min-width: 0; display: flex; justify-content: space-between; gap: 10px; font-size: 12px; }
     .sitrep-item strong { color: #fff; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .sitrep-item span { color: #aeb6ac; white-space: nowrap; }
+    .sitrep-item span { color: #aab7cd; white-space: nowrap; }
+    .sitrep-foot {
+      margin-top: 2px; padding-top: 10px;
+      border-top: 1px solid rgba(255,255,255,.12);
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 11px; color: var(--gold-bright); font-weight: 700;
+      letter-spacing: .02em;
+    }
+    .sitrep-chevron { transition: transform .25s ease; display: inline-block; font-size: 12px; }
+    .sitrep-card.expanded .sitrep-chevron { transform: rotate(180deg); }
+
+    /* ── SITREP weekly drilldown ── */
+    .sitrep-drill {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface);
+      box-shadow: 0 1px 2px rgba(18,24,18,.04);
+      overflow: hidden;
+      animation: drillIn .24s ease;
+    }
+    @keyframes drillIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+    .drill-head {
+      padding: 14px 18px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      background: var(--surface2); flex-wrap: wrap;
+    }
+    .drill-head-title { font-weight: 800; font-size: 14px; letter-spacing: .01em; }
+    .drill-head-title span { color: var(--gold); }
+    .drill-head-sub { font-size: 11px; color: var(--text3); font-weight: 600; }
+    .drill-weeks { display: flex; flex-direction: column; }
+    .drill-week { border-bottom: 1px solid var(--border); }
+    .drill-week:last-child { border-bottom: none; }
+    .drill-week.current { background: linear-gradient(90deg, var(--gold-soft), transparent 60%); }
+    .drill-week-head {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 12px 18px 6px;
+    }
+    .drill-week-range { font-weight: 750; font-size: 13px; color: var(--text); display: flex; align-items: center; gap: 9px; }
+    .drill-week-range .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gold); flex-shrink: 0; }
+    .drill-week-count {
+      font-size: 11px; font-weight: 800; color: var(--navy);
+      background: var(--gold-soft); border: 1px solid #ecdcae;
+      padding: 3px 9px; border-radius: 999px; white-space: nowrap;
+    }
+    .drill-jobs { display: flex; flex-direction: column; padding: 0 18px 12px; }
+    .drill-job {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 9px 0; border-top: 1px dashed var(--border); cursor: pointer;
+      border-radius: 6px; transition: background .12s;
+    }
+    .drill-job:hover { background: var(--surface2); }
+    .drill-job:first-child { border-top: none; }
+    .drill-job-main { min-width: 0; }
+    .drill-job-company { font-weight: 700; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .drill-job-role { color: var(--text2); font-size: 12px; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .drill-job-meta { display: flex; align-items: center; gap: 10px; white-space: nowrap; flex-shrink: 0; }
+    .drill-job-date { color: var(--text3); font-size: 12px; }
 
     /* ── Toolbar ── */
     .toolbar {
@@ -450,7 +528,7 @@
       color: var(--text);
       outline: none; transition: border-color .15s;
     }
-    .search-wrap input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+    .search-wrap input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(14,33,71,.12); }
     .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text3); pointer-events: none; }
     select, .btn {
       min-height: 36px;
@@ -467,6 +545,12 @@
     .btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
     .btn.primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); }
     .btn.dark { background: var(--ink); color: #fff; border-color: var(--ink); }
+    .btn.dark:hover { background: var(--navy-700); border-color: var(--navy-700); }
+    .btn.gold {
+      background: linear-gradient(135deg, var(--gold-bright), var(--gold));
+      color: #2a2410; border-color: var(--gold); font-weight: 750;
+    }
+    .btn.gold:hover { filter: brightness(1.05); background: linear-gradient(135deg, var(--gold-bright), var(--gold)); border-color: var(--gold); }
     .btn.ghost { background: transparent; }
     .btn:disabled { opacity: .55; cursor: not-allowed; }
 
@@ -488,13 +572,54 @@
     .toolbar-right { margin-left: auto; display: flex; gap: 8px; }
 
     /* ── Table ── */
-    .content-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) 360px;
-      gap: 14px;
-      align-items: start;
-    }
+    .content-grid { display: block; }
     .view-container { min-width: 0; }
+
+    /* ── Drawer (click an item) ── */
+    .drawer-scrim {
+      position: fixed; inset: 0;
+      background: rgba(8,16,32,.46);
+      -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
+      opacity: 0; visibility: hidden;
+      transition: opacity .25s;
+      z-index: 250;
+    }
+    .drawer-scrim.open { opacity: 1; visibility: visible; }
+    .drawer {
+      position: fixed; top: 0; right: 0;
+      height: 100vh; width: 448px; max-width: calc(100vw - 40px);
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      box-shadow: -24px 0 64px rgba(8,16,32,.24);
+      transform: translateX(102%);
+      transition: transform .34s cubic-bezier(.22,.61,.36,1);
+      z-index: 260;
+      display: flex; flex-direction: column;
+      overflow-y: auto;
+    }
+    .drawer.open { transform: translateX(0); }
+    .drawer-head {
+      padding: 22px 22px 20px;
+      background: linear-gradient(150deg, var(--navy), var(--navy-700));
+      color: #fff; position: relative;
+    }
+    .drawer-head::after {
+      content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 2px;
+      background: linear-gradient(90deg, var(--gold), var(--gold-bright));
+    }
+    .drawer-close {
+      position: absolute; top: 16px; right: 16px;
+      width: 32px; height: 32px; border-radius: 8px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.08); color: #fff;
+      cursor: pointer; font-size: 20px; line-height: 1;
+      display: grid; place-items: center; transition: background .15s;
+    }
+    .drawer-close:hover { background: rgba(255,255,255,.18); }
+    .drawer-kicker { color: var(--gold-bright); font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 10px; }
+    .drawer-company { font-size: 23px; font-weight: 800; line-height: 1.15; margin-bottom: 6px; padding-right: 40px; }
+    .drawer-role { color: #c5d2e8; font-size: 13px; line-height: 1.45; margin-bottom: 14px; }
+    .drawer-body { padding: 20px 22px 28px; display: flex; flex-direction: column; gap: 18px; }
     .table-wrap {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -514,7 +639,7 @@
     tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
     tbody tr:last-child { border-bottom: none; }
     tbody tr:hover { background: #fafbf8; }
-    tbody tr.selected { background: #f1f6ff; box-shadow: inset 3px 0 0 var(--primary); }
+    tbody tr.selected { background: #f3f6fc; box-shadow: inset 3px 0 0 var(--gold); }
     tbody td { padding: 11px 12px; vertical-align: middle; }
     .td-num { color: var(--text3); font-size: 12px; width: 40px; }
     .td-company { font-weight: 700; min-width: 180px; }
@@ -786,7 +911,7 @@
       font-family: inherit; outline: none; transition: border-color .15s; width: 100%;
     }
     input[type=text]:focus, input[type=date]:focus, textarea:focus, select.form-select:focus {
-      border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59,130,246,.1);
+      border-color: var(--primary); box-shadow: 0 0 0 3px rgba(14,33,71,.12);
     }
     textarea { resize: vertical; min-height: 72px; }
 
@@ -1005,7 +1130,6 @@
       <button class="rail-btn" id="navBoard" onclick="setView('kanban')"><span class="rail-icon">B</span><span>Board</span></button>
       <button class="rail-btn" id="navParser" onclick="setView('parse')"><span class="rail-icon">A</span><span>Add From JD</span></button>
       <button class="rail-btn" onclick="focusSearch()"><span class="rail-icon">S</span><span>Search</span></button>
-      <button class="rail-btn" onclick="openSettings()"><span class="rail-icon">G</span><span>Settings</span></button>
     </nav>
     <div class="rail-footer">Track signal, movement, and next actions without losing the thread.</div>
   </aside>
@@ -1026,7 +1150,7 @@
           <span class="user-email" id="userEmail"></span>
         </div>
         <button class="btn ghost" onclick="signOut()" id="signOutBtn" style="display:none">Sign Out</button>
-        <button class="btn primary" onclick="openModal()">Add Application</button>
+        <button class="btn gold" onclick="openModal()">+ Add Application</button>
       </div>
     </header>
 
@@ -1037,8 +1161,9 @@
 
     <section class="dashboard-grid">
       <div class="stats-bar" id="statsBar"></div>
-      <div class="sitrep-card" id="sitrepPanel"></div>
+      <div class="sitrep-card" id="sitrepPanel" onclick="toggleSitrep()" role="button" tabindex="0" aria-expanded="false"></div>
     </section>
+    <div class="sitrep-drill" id="sitrepDrill" hidden></div>
 
     <div class="toolbar">
       <select id="stageFilter" onchange="applyFilters()">
@@ -1069,7 +1194,6 @@
           <button id="btnKanban" onclick="setView('kanban')">Board</button>
           <button id="btnParse" onclick="setView('parse')">Parse Job</button>
         </div>
-        <button class="btn" onclick="openSettings()">Settings</button>
       </div>
     </div>
 
@@ -1153,11 +1277,13 @@
           </div>
         </div>
       </div>
-
-      <aside class="inspector" id="inspector"></aside>
     </div>
   </main>
 </div>
+
+<!-- Detail Drawer (opens when a row / card / log entry is clicked) -->
+<div class="drawer-scrim" id="drawerScrim" onclick="closeDrawer()"></div>
+<aside class="drawer" id="drawer" aria-hidden="true"></aside>
 
 <!-- Add/Edit Modal -->
 <div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
@@ -1217,29 +1343,6 @@
     <div class="modal-footer">
       <button class="btn" onclick="closeModal()">Cancel</button>
       <button class="btn primary" onclick="saveEntry()">Save</button>
-    </div>
-  </div>
-</div>
-
-<!-- Settings modal -->
-<div class="modal-overlay" id="settingsOverlay" onclick="handleSettingsOverlayClick(event)">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">Settings</div>
-      <button class="icon-btn" onclick="closeSettings()" style="font-size:20px">×</button>
-    </div>
-    <div class="modal-body">
-      <div class="form-group">
-        <label>Google Places API key</label>
-        <input type="password" id="sPlacesKey" placeholder="Paste your Places API (New) key" autocomplete="off">
-        <div class="parser-note" style="margin-top:8px">
-          Used to fill the full HQ street address when parsing a job posting. Stored only in this browser (localStorage) — never sent anywhere except Google. Leave blank to fall back to the city/state from the posting.
-        </div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn" onclick="clearSettingsKey()">Remove key</button>
-      <button class="btn primary" onclick="saveSettings()">Save</button>
     </div>
   </div>
 </div>
@@ -1376,6 +1479,8 @@ let auth = null;
 let currentUser = null;
 let isListening = false;
 let selectedEntryId = null;
+let drawerOpen = false;
+let sitrepOpen = false;
 
 // ── Firebase Setup ────────────────────────────────────────────────────────────
 function getSavedConfig() {
@@ -1625,13 +1730,16 @@ function applyFilters() {
     return 0;
   });
 
-  if (!filtered.some(row => row.id === selectedEntryId)) {
-    selectedEntryId = filtered[0] ? filtered[0].id : null;
+  // Keep the open drawer pointing at a record that still exists; close it otherwise.
+  if (selectedEntryId && !data.some(d => d.id === selectedEntryId)) {
+    selectedEntryId = null;
+    closeDrawer();
   }
 
   currentPage = 1;
   renderStats();
   renderSitrep();
+  if (sitrepOpen) renderSitrepDrill();
   render();
 }
 
@@ -1659,13 +1767,16 @@ function renderSitrep() {
       <div class="sitrep-title"><span>SITREP</span><span>Standby</span></div>
       <div class="sitrep-list">
         <div class="sitrep-item"><strong>No live records yet</strong><span>--</span></div>
-      </div>`;
+      </div>
+      <div class="sitrep-foot"><span>Weekly log</span><span class="sitrep-chevron">▾</span></div>`;
+    panel.classList.toggle('expanded', sitrepOpen);
     return;
   }
 
   const recent = [...data]
     .sort((a, b) => Number(b.id || 0) - Number(a.id || 0))
     .slice(0, 3);
+  const thisWeek = applicationsThisWeek().length;
   panel.innerHTML = `
     <div class="sitrep-title"><span>SITREP</span><span>${fmtDate(todayISO())}</span></div>
     <div class="sitrep-list">
@@ -1674,14 +1785,116 @@ function renderSitrep() {
           <strong>${esc(row.company)}</strong>
           <span>${esc(normalizeStageValue(row.stage))}</span>
         </div>`).join('')}
+    </div>
+    <div class="sitrep-foot">
+      <span>${thisWeek} applied this week · weekly log</span>
+      <span class="sitrep-chevron">▾</span>
     </div>`;
+  panel.classList.toggle('expanded', sitrepOpen);
+}
+
+// ── SITREP weekly drilldown (Sunday → Saturday) ───────────────────────────────
+function toggleSitrep() {
+  sitrepOpen = !sitrepOpen;
+  const panel = document.getElementById('sitrepPanel');
+  const drill = document.getElementById('sitrepDrill');
+  panel.classList.toggle('expanded', sitrepOpen);
+  panel.setAttribute('aria-expanded', String(sitrepOpen));
+  if (sitrepOpen) {
+    renderSitrepDrill();
+    drill.hidden = false;
+    drill.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  } else {
+    drill.hidden = true;
+  }
+}
+
+function isoToDate(iso) {
+  const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null;
+}
+
+// Sunday that begins the week containing `date`.
+function weekStartOf(date) {
+  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  d.setDate(d.getDate() - d.getDay());
+  return d;
+}
+
+function applicationsThisWeek() {
+  const start = weekStartOf(new Date());
+  const end = new Date(start); end.setDate(end.getDate() + 7);
+  return data.filter(r => { const d = isoToDate(r.applied); return d && d >= start && d < end; });
+}
+
+function fmtRange(start, end) {
+  const m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const left = `${m[start.getMonth()]} ${start.getDate()}`;
+  const right = start.getMonth() === end.getMonth()
+    ? `${end.getDate()}`
+    : `${m[end.getMonth()]} ${end.getDate()}`;
+  return `${left} – ${right}`;
+}
+
+function renderSitrepDrill() {
+  const el = document.getElementById('sitrepDrill');
+  if (!el) return;
+
+  const groups = new Map();
+  data.forEach(row => {
+    const d = isoToDate(row.applied);
+    if (!d) return;
+    const ws = weekStartOf(d);
+    const key = ws.getTime();
+    if (!groups.has(key)) groups.set(key, { start: ws, jobs: [] });
+    groups.get(key).jobs.push(row);
+  });
+  const weeks = [...groups.values()].sort((a, b) => b.start - a.start);
+  const undated = data.filter(r => !isoToDate(r.applied)).length;
+  const curStart = weekStartOf(new Date()).getTime();
+
+  if (!weeks.length) {
+    el.innerHTML = `
+      <div class="drill-head"><div class="drill-head-title">Weekly <span>application log</span></div></div>
+      <div style="padding:18px;color:var(--text2);font-size:13px">No dated applications yet.</div>`;
+    return;
+  }
+
+  const weeksHTML = weeks.map(w => {
+    const end = new Date(w.start); end.setDate(end.getDate() + 6);
+    const isCur = w.start.getTime() === curStart;
+    const jobs = [...w.jobs].sort((a, b) => isoToDate(b.applied) - isoToDate(a.applied));
+    const jobsHTML = jobs.map(j => `
+      <div class="drill-job" onclick="selectEntry(${j.id})">
+        <div class="drill-job-main">
+          <div class="drill-job-company">${esc(j.company)}</div>
+          <div class="drill-job-role">${esc(j.role)}</div>
+        </div>
+        <div class="drill-job-meta">${stageBadge(j.stage)}<span class="drill-job-date">${fmtDate(j.applied)}</span></div>
+      </div>`).join('');
+    return `
+      <div class="drill-week ${isCur ? 'current' : ''}">
+        <div class="drill-week-head">
+          <div class="drill-week-range"><span class="dot"></span>${fmtRange(w.start, end)}${isCur ? ' · This week' : ''}</div>
+          <span class="drill-week-count">${jobs.length} applied</span>
+        </div>
+        <div class="drill-jobs">${jobsHTML}</div>
+      </div>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div class="drill-head">
+      <div class="drill-head-title">Weekly <span>application log</span></div>
+      <span class="drill-head-sub">Grouped Sunday → Saturday${undated ? ` · ${undated} undated` : ''}</span>
+    </div>
+    <div class="drill-weeks">${weeksHTML}</div>`;
 }
 
 // ── Render ────────────────────────────────────────────────────────────────────
 function render() {
   if (currentView === 'table') renderTable();
   else if (currentView === 'kanban') renderKanban();
-  renderInspector();
+  if (drawerOpen) renderDrawerContent();
 }
 
 function stageBadge(stage) {
@@ -1782,64 +1995,74 @@ function renderTable() {
 
 function selectEntry(id) {
   selectedEntryId = id;
+  openDrawer();
   render();
 }
 
-function renderInspector() {
-  const panel = document.getElementById('inspector');
+function openDrawer() {
+  if (!data.find(d => d.id === selectedEntryId)) return;
+  drawerOpen = true;
+  renderDrawerContent();
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('drawer').setAttribute('aria-hidden', 'false');
+  document.getElementById('drawerScrim').classList.add('open');
+}
+
+function closeDrawer() {
+  drawerOpen = false;
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('drawer').setAttribute('aria-hidden', 'true');
+  document.getElementById('drawerScrim').classList.remove('open');
+}
+
+function renderDrawerContent() {
+  const panel = document.getElementById('drawer');
   if (!panel) return;
-  const row = data.find(d => d.id === selectedEntryId) || filtered[0] || data[0];
-  if (!row) {
-    panel.innerHTML = `
-      <div class="inspector-card">
-        <div class="inspector-empty">Select an application to view its dossier.</div>
-      </div>`;
-    return;
-  }
-  selectedEntryId = row.id;
+  const row = data.find(d => d.id === selectedEntryId);
+  if (!row) { closeDrawer(); return; }
+
   const website = normalizeWebsite(row.website);
   const tags = String(row.notes || '')
     .split('·')
     .map(part => part.trim())
     .filter(Boolean)
-    .slice(0, 10);
+    .slice(0, 12);
   const recent = [...data]
     .sort((a, b) => Number(b.id || 0) - Number(a.id || 0))
-    .slice(0, 6);
+    .slice(0, 5);
 
   panel.innerHTML = `
-    <div class="inspector-card">
-      <div class="inspector-head">
-        <div class="inspector-kicker">Selected dossier #${row.id}</div>
-        <div class="inspector-company">${esc(row.company)}</div>
-        <div class="inspector-role">${esc(row.role)}</div>
-        ${stageBadge(row.stage)}
-      </div>
-      <div class="inspector-body">
-        <div class="field-list">
-          <div class="field-row"><div class="field-label">Applied</div><div class="field-value">${esc(fmtDate(row.applied))}</div></div>
-          <div class="field-row"><div class="field-label">HQ</div><div class="field-value">${esc(row.address || 'Not captured')}</div></div>
-          <div class="field-row"><div class="field-label">Website</div><div class="field-value">${website ? `<a href="${esc(website)}" target="_blank" rel="noopener">${esc(website)}</a>` : 'Not captured'}</div></div>
-          <div class="field-row"><div class="field-label">Contact</div><div class="field-value">${esc(row.hmContact || 'None')}</div></div>
-        </div>
-        ${tags.length ? `<div class="tag-stack">${tags.map(tag => `<span class="note-tag">${esc(tag)}</span>`).join('')}</div>` : ''}
-        <div class="inspector-actions">
-          <button class="btn dark" onclick="openModal(${row.id})">Edit</button>
-          ${website ? `<a class="btn" href="${esc(website)}" target="_blank" rel="noopener">Website</a>` : `<button class="btn" disabled>Website</button>`}
-        </div>
-      </div>
+    <div class="drawer-head">
+      <button class="drawer-close" onclick="closeDrawer()" aria-label="Close">×</button>
+      <div class="drawer-kicker">Dossier · #${row.id}</div>
+      <div class="drawer-company">${esc(row.company)}</div>
+      <div class="drawer-role">${esc(row.role)}</div>
+      ${stageBadge(row.stage)}
     </div>
-    <div class="activity-card">
-      <div class="activity-title"><span>Recent Movement</span><span>${recent.length}</span></div>
-      <div class="activity-list">
-        ${recent.map(item => `
-          <div class="activity-item">
-            <div class="activity-main">
-              <div class="activity-company">${esc(item.company)}</div>
-              <div class="activity-meta">${esc(item.role)} · ${esc(fmtDate(item.applied))}</div>
-            </div>
-            ${stageBadge(item.stage)}
-          </div>`).join('')}
+    <div class="drawer-body">
+      <div class="field-list">
+        <div class="field-row"><div class="field-label">Applied</div><div class="field-value">${esc(fmtDate(row.applied))}</div></div>
+        <div class="field-row"><div class="field-label">HQ</div><div class="field-value">${esc(row.address || 'Not captured')}</div></div>
+        <div class="field-row"><div class="field-label">Website</div><div class="field-value">${website ? `<a href="${esc(website)}" target="_blank" rel="noopener">${esc(website)}</a>` : 'Not captured'}</div></div>
+        <div class="field-row"><div class="field-label">Contact</div><div class="field-value">${esc(row.hmContact || 'None')}</div></div>
+      </div>
+      ${tags.length ? `<div class="tag-stack">${tags.map(tag => `<span class="note-tag">${esc(tag)}</span>`).join('')}</div>` : ''}
+      <div class="inspector-actions">
+        <button class="btn dark" onclick="openModal(${row.id})">Edit</button>
+        ${website ? `<a class="btn" href="${esc(website)}" target="_blank" rel="noopener">Visit site</a>` : `<button class="btn" disabled>Visit site</button>`}
+      </div>
+      <div class="activity-card">
+        <div class="activity-title"><span>Recent movement</span><span>${recent.length}</span></div>
+        <div class="activity-list">
+          ${recent.map(item => `
+            <div class="activity-item" onclick="selectEntry(${item.id})" style="cursor:pointer">
+              <div class="activity-main">
+                <div class="activity-company">${esc(item.company)}</div>
+                <div class="activity-meta">${esc(item.role)} · ${esc(fmtDate(item.applied))}</div>
+              </div>
+              ${stageBadge(item.stage)}
+            </div>`).join('')}
+        </div>
       </div>
     </div>`;
 }
@@ -1925,24 +2148,6 @@ function openModal(id) {
 
 function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
 function handleOverlayClick(e) { if (e.target === document.getElementById('modalOverlay')) closeModal(); }
-
-function openSettings() {
-  document.getElementById('sPlacesKey').value = getPlacesApiKey();
-  document.getElementById('settingsOverlay').classList.add('open');
-}
-function closeSettings() { document.getElementById('settingsOverlay').classList.remove('open'); }
-function handleSettingsOverlayClick(e) { if (e.target === document.getElementById('settingsOverlay')) closeSettings(); }
-function saveSettings() {
-  setPlacesApiKey(document.getElementById('sPlacesKey').value);
-  closeSettings();
-  toast('Settings saved', 'green');
-}
-function clearSettingsKey() {
-  document.getElementById('sPlacesKey').value = '';
-  try { localStorage.removeItem('placesApiKey'); } catch (e) {}
-  closeSettings();
-  toast('API key removed');
-}
 
 function saveEntry() {
   const company = document.getElementById('fCompany').value.trim();
@@ -2032,18 +2237,6 @@ function parseJobPosting() {
       if (url && !field.value.trim()) field.value = url;
     });
   }
-
-  // Look up the real HQ street address (the JD usually only gives city/state).
-  if (parsed.company) {
-    const field = document.getElementById('pAddress');
-    const cityState = field.value; // what inferAddress filled, so we know if it's untouched
-    field.placeholder = 'Looking up HQ…';
-    lookupCompanyAddress(parsed.company, parsed.address).then(addr => {
-      field.placeholder = 'HQ address';
-      // Only replace if the field still holds the auto-filled city/state (don't clobber edits).
-      if (addr && field.value === cityState) field.value = addr;
-    });
-  }
 }
 
 function parseJobText(raw) {
@@ -2123,44 +2316,6 @@ async function lookupCompanyWebsite(company) {
     } catch (e) { /* try next query */ }
   }
   return '';
-}
-
-// Google Places API key, stored in localStorage so it never lands in the repo.
-// Set it once in the browser console: setPlacesApiKey('YOUR_KEY')
-function getPlacesApiKey() {
-  try { return localStorage.getItem('placesApiKey') || ''; } catch (e) { return ''; }
-}
-window.setPlacesApiKey = function (key) {
-  try { localStorage.setItem('placesApiKey', String(key || '').trim()); return 'Saved.'; }
-  catch (e) { return 'Could not save: ' + e.message; }
-};
-
-// Resolve the real HQ street address via Google Places (New) Text Search.
-// CORS-friendly endpoint. Returns '' if no key or no confident result (no guessing).
-async function lookupCompanyAddress(company, location) {
-  const name = String(company || '').trim();
-  const key = getPlacesApiKey();
-  if (!name || !key) return '';
-  const cityHint = String(location || '').replace(/\b(remote|hybrid|onsite|usa)\b/gi, '').replace(/[,\s]+$/,'').trim();
-  const textQuery = (name + ' headquarters' + (cityHint ? ' ' + cityHint : '')).trim();
-  try {
-    const res = await fetch('https://places.googleapis.com/v1/places:searchText', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Goog-Api-Key': key,
-        'X-Goog-FieldMask': 'places.formattedAddress,places.displayName'
-      },
-      body: JSON.stringify({ textQuery, maxResultCount: 1 })
-    });
-    if (!res.ok) return '';
-    const data = await res.json();
-    const place = data && Array.isArray(data.places) ? data.places[0] : null;
-    if (!place || !place.formattedAddress) return '';
-    return place.formattedAddress.replace(/,\s*USA$/i, '');
-  } catch (e) {
-    return '';
-  }
 }
 
 function inferRole(lines) {
@@ -2367,10 +2522,18 @@ function toast(msg, type) {
 }
 
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') closeModal();
+  if (e.key === 'Escape') {
+    closeModal();
+    if (drawerOpen) closeDrawer();
+  }
   if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
     if (document.getElementById('modalOverlay').classList.contains('open')) saveEntry();
   }
+});
+
+// Let keyboard users toggle the SITREP tile.
+document.getElementById('sitrepPanel').addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleSitrep(); }
 });
 
 // ── Go ────────────────────────────────────────────────────────────────────────
