@@ -1,0 +1,15 @@
+{
+  "name": "job-tracker-functions",
+  "description": "Cloud Functions for The Dossier — AI job-posting parser",
+  "type": "module",
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.70.0",
+    "firebase-admin": "^13.0.0",
+    "firebase-functions": "^6.1.0"
+  },
+  "private": true
+}

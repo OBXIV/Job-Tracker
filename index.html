@@ -2204,31 +2204,23 @@ function todayISO() {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-function parseJobPosting() {
-  const raw = document.getElementById('jobPasteInput').value.trim();
-  if (!raw) {
-    document.getElementById('jobPasteInput').focus();
-    toast('Paste a job posting first');
-    return;
-  }
+// Cloud Function that runs the Claude (Haiku) parser server-side. The API key
+// lives in the function's secrets, never in this file.
+const PARSE_ENDPOINT = 'https://us-central1-job-tracker-f6ed5.cloudfunctions.net/parseJob';
 
-  const parsed = parseJobText(raw);
-  document.getElementById('pCompany').value = parsed.company;
+// Fill the parse form from a parsed object. Handles both the AI result
+// (hmContact) and the local regex fallback (contact).
+function applyParsedToForm(parsed) {
+  document.getElementById('pCompany').value = parsed.company || '';
   document.getElementById('pAddress').value = parsed.address || '';
   document.getElementById('pWebsite').value = parsed.website || '';
-  document.getElementById('pRole').value = parsed.role;
+  document.getElementById('pRole').value    = parsed.role || '';
   document.getElementById('pApplied').value = todayISO();
-  document.getElementById('pStage').value = 'Applied';
-  document.getElementById('pContact').value = parsed.contact;
-  document.getElementById('pNotes').value = parsed.notes;
+  document.getElementById('pStage').value   = 'Applied';
+  document.getElementById('pContact').value = parsed.hmContact || parsed.contact || '';
+  document.getElementById('pNotes').value   = parsed.notes || '';
 
-  if (!parsed.company || !parsed.role) {
-    toast('Parsed what I could. Check company and role.');
-  } else {
-    toast('Posting parsed. Review before saving.', 'green');
-  }
-
-  // If the posting had no explicit URL, look up the real homepage by company name.
+  // If no homepage came back, look up the real one by company name (Clearbit).
   if (!parsed.website && parsed.company) {
     const field = document.getElementById('pWebsite');
     field.placeholder = 'Looking up…';
@@ -2236,6 +2228,42 @@ function parseJobPosting() {
       field.placeholder = 'https://company.com';
       if (url && !field.value.trim()) field.value = url;
     });
+  }
+}
+
+async function parseJobPosting() {
+  const raw = document.getElementById('jobPasteInput').value.trim();
+  if (!raw) {
+    document.getElementById('jobPasteInput').focus();
+    toast('Paste a job posting first');
+    return;
+  }
+
+  const btn = document.querySelector('#parseView .btn.primary');
+  if (btn) { btn.disabled = true; btn.textContent = 'Reading…'; }
+  toast('Reading posting with AI…');
+
+  try {
+    if (!currentUser) throw new Error('not-signed-in');
+    const token = await currentUser.getIdToken();
+    const res = await fetch(PARSE_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ text: raw })
+    });
+    if (!res.ok) throw new Error('parse-failed-' + res.status);
+    const parsed = await res.json();
+    applyParsedToForm(parsed);
+    toast('Posting parsed by AI. Review before saving.', 'green');
+  } catch (e) {
+    // Offline / not signed in / function unavailable → local regex parser.
+    const parsed = parseJobText(raw);
+    applyParsedToForm(parsed);
+    toast(parsed.company && parsed.role
+      ? 'AI unavailable — used basic parser.'
+      : 'AI unavailable — basic parser. Check company and role.');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Parse Posting'; }
   }
 }
 
