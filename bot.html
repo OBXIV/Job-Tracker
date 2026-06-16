@@ -132,13 +132,14 @@ button:disabled{opacity:.5;cursor:not-allowed}
         <div class="form-grid">
           <div class="fg full"><label for="fCompany">Company *</label><input type="text" id="fCompany" placeholder="e.g. Acme Corp" /></div>
           <div class="fg full"><label for="fRole">Role / Title</label><input type="text" id="fRole" placeholder="e.g. Director of IT" /></div>
+          <div class="fg full"><label for="fAddress">HQ Address</label><input type="text" id="fAddress" placeholder="Full corporate HQ address" /></div>
           <div class="fg"><label for="fApplied">Date Applied</label><input type="date" id="fApplied" /></div>
           <div class="fg">
             <label for="fStage">Stage</label>
             <select id="fStage">
               <option>Applied</option><option>HM Outreach</option><option>Phone Screen</option>
               <option>Interview</option><option>Final Round</option><option>Offer</option>
-              <option>Rejected</option><option>Withdrawn</option>
+              <option>Not Moving Forward</option><option>Withdrawn</option>
             </select>
           </div>
           <div class="fg full"><label for="fContact">HM Contact</label><input type="text" id="fContact" placeholder="Hiring manager name (optional)" /></div>
@@ -186,9 +187,9 @@ async function autoSave() {
     if (mode === 'update') {
       const idx = arr.findIndex(d => d.id === updateId);
       if (idx === -1) throw new Error('Entry #' + updateId + ' not found');
-      const dbMap = {company:'company',role:'role',applied:'applied',stage:'stage',contact:'hmContact',notes:'notes'};
+      const dbMap = {company:'company',role:'role',address:'address',applied:'applied',stage:'stage',contact:'hmContact',notes:'notes'};
       const changed = {};
-      ['company','role','applied','stage','contact','notes'].forEach(param => {
+      ['company','role','address','applied','stage','contact','notes'].forEach(param => {
         if (p.get(param)) { arr[idx][dbMap[param]] = p.get(param); changed[param] = p.get(param); }
       });
       const w = await fetch(DB, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(arr)});
@@ -200,6 +201,7 @@ async function autoSave() {
       const entry = {
         id: maxId + 1,
         company:   p.get('company') || '',
+        address:   p.get('address') || '',
         role:      p.get('role')    || '',
         applied:   p.get('applied') || new Date().toISOString().split('T')[0],
         stage:     p.get('stage')   || 'Applied',
@@ -236,6 +238,7 @@ function showAutoSuccess(type, entry, changed) {
   const rows = [
     ['Company', entry.company],
     ['Role', entry.role || '—'],
+    ['HQ', entry.address || '—'],
     ['Applied', entry.applied || '—'],
     ['Stage', entry.stage],
     ['Contact', entry.hmContact || '—'],
@@ -297,7 +300,7 @@ async function undoAdd(id) {
 // ── MANUAL SCREEN ─────────────────────────────────────────────────────────────
 function initManual() {
   document.getElementById('fApplied').value = new Date().toISOString().split('T')[0];
-  const map = {company:'fCompany',role:'fRole',applied:'fApplied',stage:'fStage',contact:'fContact',notes:'fNotes'};
+  const map = {company:'fCompany',role:'fRole',address:'fAddress',applied:'fApplied',stage:'fStage',contact:'fContact',notes:'fNotes'};
   let filled = false;
   Object.entries(map).forEach(([param, id]) => {
     const val = p.get(param);
@@ -313,7 +316,7 @@ function initManual() {
     document.getElementById('cardSub').textContent = 'Only specified fields will be updated';
     document.getElementById('submitBtn').textContent = '✓ Update Pipeline';
     document.getElementById('submitBtn').className = 'btn-submit-orange';
-    ['fCompany','fRole','fApplied','fStage','fContact','fNotes'].forEach(id => {
+    ['fCompany','fRole','fAddress','fApplied','fStage','fContact','fNotes'].forEach(id => {
       if (!p.get(Object.entries(map).find(([,v])=>v===id)?.[0])) {
         document.getElementById(id).disabled = true;
         document.getElementById(id).placeholder = '(unchanged)';
@@ -352,8 +355,8 @@ async function submitManual() {
     if (mode === 'update') {
       const idx = arr.findIndex(d => d.id === updateId);
       if (idx === -1) throw new Error('Entry #' + updateId + ' not found');
-      const dbMap = {company:'company',role:'role',applied:'applied',stage:'stage',contact:'hmContact',notes:'notes'};
-      Object.entries({company:'fCompany',role:'fRole',applied:'fApplied',stage:'fStage',contact:'fContact',notes:'fNotes'}).forEach(([param,elId]) => {
+      const dbMap = {company:'company',role:'role',address:'address',applied:'applied',stage:'stage',contact:'hmContact',notes:'notes'};
+      Object.entries({company:'fCompany',role:'fRole',address:'fAddress',applied:'fApplied',stage:'fStage',contact:'fContact',notes:'fNotes'}).forEach(([param,elId]) => {
         if (!document.getElementById(elId).disabled) arr[idx][dbMap[param]] = document.getElementById(elId).value.trim();
       });
       const w = await fetch(DB,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(arr)});
@@ -364,7 +367,7 @@ async function submitManual() {
       const company = document.getElementById('fCompany').value.trim();
       if (!company) { document.getElementById('fCompany').focus(); btn.disabled=false; btn.innerHTML='＋ Add to Pipeline'; return; }
       const maxId = arr.length ? Math.max(...arr.map(d=>d.id||0)) : 999;
-      const entry = {id:maxId+1, company, role:document.getElementById('fRole').value.trim(), applied:document.getElementById('fApplied').value||new Date().toISOString().split('T')[0], stage:document.getElementById('fStage').value, hmContact:document.getElementById('fContact').value.trim(), notes:document.getElementById('fNotes').value.trim()};
+      const entry = {id:maxId+1, company, address:document.getElementById('fAddress').value.trim(), role:document.getElementById('fRole').value.trim(), applied:document.getElementById('fApplied').value||new Date().toISOString().split('T')[0], stage:document.getElementById('fStage').value, hmContact:document.getElementById('fContact').value.trim(), notes:document.getElementById('fNotes').value.trim()};
       arr.unshift(entry);
       const w = await fetch(DB,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(arr)});
       if (!w.ok) throw new Error('Write failed');
@@ -383,7 +386,7 @@ async function submitManual() {
 }
 
 function clearForm(keepResult) {
-  ['fCompany','fRole','fContact','fNotes'].forEach(id=>{const el=document.getElementById(id);el.value='';el.disabled=false;});
+  ['fCompany','fRole','fAddress','fContact','fNotes'].forEach(id=>{const el=document.getElementById(id);el.value='';el.disabled=false;});
   document.getElementById('fApplied').value=new Date().toISOString().split('T')[0];
   document.getElementById('fApplied').disabled=false;
   document.getElementById('fStage').value='Applied';

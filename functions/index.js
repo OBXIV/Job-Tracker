@@ -13,6 +13,7 @@ const ANTHROPIC_API_KEY = defineSecret("ANTHROPIC_API_KEY");
 const OWNER_EMAIL = "mechev14@gmail.com";
 
 const MODEL = "claude-haiku-4-5";
+const WEB_SEARCH_TOOL = { type: "web_search_20250305", name: "web_search", max_uses: 3 };
 
 // The shape the tracker's parse form expects back, enforced server-side so the
 // model can't return anything off-schema.
@@ -51,7 +52,7 @@ async function lookupHqAddress(client, company, locationHint) {
       "Reply with ONLY the full street address on one line — street, city, state, ZIP — " +
       "or exactly NONE if you cannot find a confident answer. No commentary, no extra lines.",
     messages: [{ role: "user", content: `What is the corporate headquarters street address of "${company}"?${hint}` }],
-    tools: [{ type: "web_search_20260209", name: "web_search" }]
+    tools: [WEB_SEARCH_TOOL]
   });
 
   // Server-side web search runs its own loop; resume if it pauses.
@@ -59,7 +60,7 @@ async function lookupHqAddress(client, company, locationHint) {
     resp = await client.messages.create({
       model: MODEL,
       max_tokens: 1024,
-      tools: [{ type: "web_search_20260209", name: "web_search" }],
+      tools: [WEB_SEARCH_TOOL],
       messages: [
         { role: "user", content: `What is the corporate headquarters street address of "${company}"?${hint}` },
         { role: "assistant", content: resp.content }

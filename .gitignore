@@ -6,6 +6,7 @@ service-account.json
 *-service-account.json
 firebase-service-account*.json
 *firebase-adminsdk*.json
+firebase-debug.log
 
 # Claude Code local settings
 .claude/settings.json
