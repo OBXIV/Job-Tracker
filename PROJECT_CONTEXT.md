@@ -120,7 +120,7 @@ Preferred behavior:
 1. Parse company, role, location, compensation, remote/hybrid/onsite, tech stack, leadership scope, notable requirements.
 2. Add with today’s date unless the user says otherwise.
 3. Default stage is `Applied`.
-4. Keep notes concise but useful for later interview/job-fit review.
+4. Keep notes concise and formatted like existing entries: short ` · `-separated tags covering location/work mode, industry, core scope, key tech/risk areas, compensation if stated, and hard requirements. Avoid long responsibility lists.
 5. Use `tracker.js` to write to Firebase.
 
 For status updates:
