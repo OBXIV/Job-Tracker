@@ -120,8 +120,9 @@ Preferred behavior:
 1. Parse company, role, location, compensation, remote/hybrid/onsite, tech stack, leadership scope, notable requirements.
 2. Add with today’s date unless the user says otherwise.
 3. Default stage is `Applied`.
-4. Keep notes concise and formatted like existing entries: short ` · `-separated tags covering location/work mode, industry, core scope, key tech/risk areas, compensation if stated, and hard requirements. Avoid long responsibility lists.
-5. Use `tracker.js` to write to Firebase.
+4. Always research and populate the company HQ street address in the tracker `address` field for applied jobs. Prefer official company/contact pages or reliable business/corporate records. Do not use only the job location when a verified HQ street address is available.
+5. Keep notes concise and formatted like existing entries: short ` · `-separated tags covering location/work mode, industry, core scope, key tech/risk areas, compensation if stated, and hard requirements. Avoid long responsibility lists.
+6. Use `tracker.js` to write to Firebase.
 
 For status updates:
 

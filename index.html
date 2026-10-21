@@ -385,7 +385,7 @@
     }
     .stats-bar {
       display: grid;
-      grid-template-columns: repeat(5, minmax(120px, 1fr));
+      grid-template-columns: repeat(6, minmax(110px, 1fr));
       gap: 10px;
       min-width: 0;
     }
@@ -402,6 +402,8 @@
     }
     .stat-value { font-size: 24px; font-weight: 760; color: var(--text); line-height: 1; }
     .stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: .05em; color: var(--text2); font-weight: 700; }
+    .stat-item.link { cursor: pointer; border-color: var(--gold); background: var(--gold-soft); text-align: left; font: inherit; }
+    .stat-item.link:hover { box-shadow: 0 4px 12px rgba(18,24,18,.14); }
     .stat-item.green { border-color: #bfe3d1; }
     .stat-item.green .stat-value { color: #047857; }
     .stat-item.amber { border-color: #ead7a1; }
@@ -999,6 +1001,34 @@
       .setup-card { padding: 24px; margin-top: 16px; }
       .inspector-actions { grid-template-columns: 1fr; }
     }
+
+    /* ── Metrics ── */
+    .mx-wrap { display: flex; flex-direction: column; gap: 18px; }
+    .mx-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+    .mx-kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; }
+    .mx-kpi-value { font-size: 30px; font-weight: 800; color: var(--navy); line-height: 1.1; }
+    .mx-kpi-label { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--text3); margin-top: 6px; }
+    .mx-kpi-sub { font-size: 12px; color: var(--text2); margin-top: 4px; }
+    .mx-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 18px; }
+    .mx-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px; min-width: 0; }
+    .mx-card h3 { font-size: 13px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--navy); margin-bottom: 14px; }
+    .mx-card h3 span { color: var(--text3); font-weight: 600; text-transform: none; letter-spacing: 0; margin-left: 6px; }
+    .mx-bar-row { display: grid; grid-template-columns: 130px 1fr 92px; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 13px; }
+    .mx-bar-track { background: var(--surface3); border-radius: 6px; height: 22px; overflow: hidden; }
+    .mx-bar-fill { height: 100%; border-radius: 6px; min-width: 2px; }
+    .mx-bar-num { text-align: right; color: var(--text2); font-variant-numeric: tabular-nums; }
+    .mx-bar-num strong { color: var(--text); }
+    .mx-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .mx-table th { text-align: right; font-size: 11px; letter-spacing: .05em; text-transform: uppercase; color: var(--text3); padding: 6px 8px; border-bottom: 1px solid var(--border); }
+    .mx-table th:first-child, .mx-table td:first-child { text-align: left; }
+    .mx-table td { text-align: right; padding: 7px 8px; border-bottom: 1px solid var(--surface3); font-variant-numeric: tabular-nums; }
+    .mx-list { display: flex; flex-direction: column; gap: 8px; font-size: 13px; }
+    .mx-list-item { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--surface3); }
+    .mx-list-item:last-child { border-bottom: none; }
+    .mx-list-item strong { color: var(--text); }
+    .mx-list-item span { color: var(--text2); text-align: right; }
+    .mx-note { font-size: 12px; color: var(--text3); line-height: 1.5; }
+    @media (max-width: 980px) { .mx-grid { grid-template-columns: 1fr; } .mx-bar-row { grid-template-columns: 100px 1fr 80px; } }
   </style>
 </head>
 <body>
@@ -1137,6 +1167,7 @@
     <nav class="rail-nav" aria-label="Primary">
       <button class="rail-btn active" id="navPipeline" onclick="setView('table')"><span class="rail-icon">P</span><span>Pipeline</span></button>
       <button class="rail-btn" id="navBoard" onclick="setView('kanban')"><span class="rail-icon">B</span><span>Board</span></button>
+      <button class="rail-btn" id="navMetrics" onclick="setView('metrics')"><span class="rail-icon">M</span><span>Metrics</span></button>
       <button class="rail-btn" id="navParser" onclick="setView('parse')"><span class="rail-icon">A</span><span>Add From JD</span></button>
       <button class="rail-btn" onclick="focusSearch()"><span class="rail-icon">S</span><span>Search</span></button>
     </nav>
@@ -1202,6 +1233,7 @@
         <div class="view-toggle">
           <button id="btnTable" class="active" onclick="setView('table')">Table</button>
           <button id="btnKanban" onclick="setView('kanban')">Board</button>
+          <button id="btnMetrics" onclick="setView('metrics')">Metrics</button>
           <button id="btnParse" onclick="setView('parse')">Parse Job</button>
         </div>
       </div>
@@ -1211,6 +1243,7 @@
       <div class="view-container">
         <div id="tableView"></div>
         <div id="kanbanView" style="display:none"></div>
+        <div id="metricsView" style="display:none"></div>
         <div id="parseView" style="display:none">
           <div class="parser-shell">
             <div class="parser-panel">
@@ -1768,7 +1801,8 @@ function renderStats() {
     <div class="stat-item green"><div class="stat-value">${active}</div><div class="stat-label">Active</div></div>
     <div class="stat-item purple"><div class="stat-value">${advanced}</div><div class="stat-label">Advanced</div></div>
     <div class="stat-item red"><div class="stat-value">${notMovingForward}</div><div class="stat-label">Not Moving Forward</div></div>
-    <div class="stat-item amber"><div class="stat-value">${rr}%</div><div class="stat-label">Response Rate</div></div>`;
+    <div class="stat-item amber"><div class="stat-value">${rr}%</div><div class="stat-label">Response Rate</div></div>
+    <button type="button" class="stat-item link" onclick="setView('metrics')" title="Open funnel metrics"><div class="stat-value">${mxPct(data.filter(d => advancementTier(d) >= 1).length, total)}</div><div class="stat-label">Funnel Metrics &rsaquo;</div></button>`;
 }
 
 function renderSitrep() {
@@ -1906,6 +1940,7 @@ function renderSitrepDrill() {
 function render() {
   if (currentView === 'table') renderTable();
   else if (currentView === 'kanban') renderKanban();
+  else if (currentView === 'metrics') renderMetrics();
   if (drawerOpen) renderDrawerContent();
 }
 
@@ -2106,6 +2141,92 @@ function renderKanban() {
   document.getElementById('kanbanView').innerHTML = `<div class="kanban-board">${cols}</div>`;
 }
 
+// ── Metrics ───────────────────────────────────────────────────────────────────
+const MX_TIERS = ['No response','Screen','Interview','Final','Offer'];
+
+function advancementTier(d) {
+  const stage = normalizeStageValue(d.stage);
+  const notes = String(d.notes || '');
+  let tier = 0;
+  if (stage === 'Phone Screen' || /phone screen|recruiter (call|screen)|ai phone|screening call/i.test(notes)) tier = 1;
+  if (stage === 'Interview' || /interviews? (with|completed|scheduled)|interviewed|\b\d(st|nd|rd|th)\b[^·]{0,12}interview|zoom interview|round \d interview|after \w+ interview/i.test(notes)) tier = 2;
+  if (stage === 'Final Round' || /(?<!possible )final (exec(utive)? )?(round|interview)/i.test(notes)) tier = 3;
+  if (stage === 'Offer' || /offer received|received (an )?offer/i.test(notes)) tier = 4;
+  return tier;
+}
+
+function mxPct(n, d) { return d ? (n / d * 100).toFixed(1).replace(/\.0$/, '') + '%' : '0%'; }
+
+function renderMetrics() {
+  const el = document.getElementById('metricsView');
+  const rows = data.slice();
+  const total = rows.length;
+  const tiers = rows.map(advancementTier);
+  const reached = t => tiers.filter(x => x >= t).length;
+  const screens = reached(1), interviews = reached(2), finals = reached(3), offers = reached(4);
+  const stageCount = s => rows.filter(d => normalizeStageValue(d.stage) === s).length;
+  const waiting = stageCount('Applied');
+  const closed = stageCount(NOT_MOVING_FORWARD_STAGE);
+  const active = rows.filter(d => !['Applied', NOT_MOVING_FORWARD_STAGE, 'Withdrawn'].includes(normalizeStageValue(d.stage))).length;
+  const today = new Date();
+  const ageDays = d => { const t = Date.parse(d.applied); return isNaN(t) ? 0 : Math.floor((today - t) / 86400000); };
+  const ghosted = rows.filter(d => normalizeStageValue(d.stage) === 'Applied' && ageDays(d) >= 30).length;
+
+  const funnel = [
+    ['Applied', total, '#2d4d82'],
+    ['Conversation', screens, '#7c3aed'],
+    ['Interviewed', interviews, '#b7791f'],
+    ['Final round', finals, '#c2410c'],
+    ['Offer', offers, '#047857'],
+  ].map(([label, n, color], i, arr) => {
+    const w = total ? Math.max(n / total * 100, n ? 1.5 : 0) : 0;
+    const conv = i === 0 ? '' : ` · ${mxPct(n, arr[i - 1][1])} of prev`;
+    return `<div class="mx-bar-row"><div>${label}</div><div class="mx-bar-track"><div class="mx-bar-fill" style="width:${w}%;background:${color}"></div></div><div class="mx-bar-num"><strong>${n}</strong> <span style="font-size:11px">${i === 0 ? '' : mxPct(n, total)}</span></div></div>`;
+  }).join('');
+
+  const stageRows = STAGES.map(s => {
+    const n = stageCount(s);
+    return `<div class="mx-bar-row"><div>${s}</div><div class="mx-bar-track"><div class="mx-bar-fill" style="width:${total ? n / total * 100 : 0}%;background:var(--navy-300)"></div></div><div class="mx-bar-num"><strong>${n}</strong></div></div>`;
+  }).join('');
+
+  const months = {};
+  rows.forEach((d, i) => {
+    const m = /^\d{4}-\d{2}/.exec(d.applied || '');
+    if (!m) return;
+    const b = months[m[0]] = months[m[0]] || { n: 0, conv: 0, int: 0, off: 0, wait: 0 };
+    b.n++; if (tiers[i] >= 1) b.conv++; if (tiers[i] >= 2) b.int++; if (tiers[i] >= 4) b.off++;
+    if (normalizeStageValue(d.stage) === 'Applied') b.wait++;
+  });
+  const monthRows = Object.keys(months).sort().map(k => {
+    const b = months[k];
+    return `<tr><td>${k}</td><td>${b.n}</td><td>${b.conv}</td><td>${b.int}</td><td>${b.off}</td><td>${b.wait}</td><td>${mxPct(b.conv, b.n)}</td></tr>`;
+  }).join('');
+
+  const advanced = rows.map((d, i) => ({ d, t: tiers[i] })).filter(x => x.t >= 1).sort((a, b) => b.t - a.t || (b.d.id || 0) - (a.d.id || 0));
+  const advList = advanced.map(({ d, t }) => `<div class="mx-list-item"><strong>${esc(d.company)}</strong><span>${esc(d.role || '')} · ${MX_TIERS[t]}${normalizeStageValue(d.stage) === NOT_MOVING_FORWARD_STAGE ? ' → closed' : ''}</span></div>`).join('') || '<div class="mx-note">Nothing yet.</div>';
+
+  el.innerHTML = `<div class="mx-wrap">
+    <div class="mx-kpis">
+      <div class="mx-kpi"><div class="mx-kpi-value">${total}</div><div class="mx-kpi-label">Applied</div></div>
+      <div class="mx-kpi"><div class="mx-kpi-value">${screens}</div><div class="mx-kpi-label">Advanced</div><div class="mx-kpi-sub">${mxPct(screens, total)} of applied</div></div>
+      <div class="mx-kpi"><div class="mx-kpi-value">${offers}</div><div class="mx-kpi-label">Offers</div><div class="mx-kpi-sub">${mxPct(offers, total)} of applied</div></div>
+      <div class="mx-kpi"><div class="mx-kpi-value">${waiting}</div><div class="mx-kpi-label">No outcome yet</div><div class="mx-kpi-sub">${ghosted} are 30+ days old</div></div>
+      <div class="mx-kpi"><div class="mx-kpi-value">${closed}</div><div class="mx-kpi-label">Not moving forward</div></div>
+      <div class="mx-kpi"><div class="mx-kpi-value">${active}</div><div class="mx-kpi-label">In play</div></div>
+    </div>
+    <div class="mx-grid">
+      <div class="mx-card"><h3>Funnel <span>highest point each job reached</span></h3>${funnel}
+        <div class="mx-note">Stage history is not stored, so a job that advanced and was later rejected is counted from its notes (phone screen, interview, final, offer wording).</div></div>
+      <div class="mx-card"><h3>Current stage</h3>${stageRows}</div>
+    </div>
+    <div class="mx-grid">
+      <div class="mx-card"><h3>By month applied</h3>
+        <table class="mx-table"><thead><tr><th>Month</th><th>Applied</th><th>Advanced</th><th>Interview</th><th>Offer</th><th>Waiting</th><th>Adv %</th></tr></thead><tbody>${monthRows}</tbody></table></div>
+      <div class="mx-card"><h3>Advanced jobs <span>${advanced.length}</span></h3><div class="mx-list">${advList}</div></div>
+    </div>
+  </div>`;
+}
+
 function goPage(p) { currentPage = p; render(); window.scrollTo(0,0); }
 
 function setView(v) {
@@ -2113,6 +2234,9 @@ function setView(v) {
   document.getElementById('tableView').style.display  = v === 'table'  ? '' : 'none';
   document.getElementById('kanbanView').style.display = v === 'kanban' ? '' : 'none';
   document.getElementById('parseView').style.display  = v === 'parse'  ? '' : 'none';
+  document.getElementById('metricsView').style.display = v === 'metrics' ? '' : 'none';
+  document.getElementById('btnMetrics').classList.toggle('active', v === 'metrics');
+  document.getElementById('navMetrics').classList.toggle('active', v === 'metrics');
   document.getElementById('btnTable').classList.toggle('active',  v === 'table');
   document.getElementById('btnKanban').classList.toggle('active', v === 'kanban');
   document.getElementById('btnParse').classList.toggle('active',  v === 'parse');

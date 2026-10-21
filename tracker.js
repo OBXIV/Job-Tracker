@@ -155,6 +155,12 @@ function includesText(value, query) {
   return String(value || '').toLowerCase().includes(String(query || '').toLowerCase());
 }
 
+function normalizeSalary(value) {
+  if (value === undefined || value === true || value === '') return 0;
+  const n = Number(String(value).replace(/[^0-9.]/g, ''));
+  return Number.isFinite(n) ? n : 0;
+}
+
 function normalizeWebsite(value) {
   const clean = String(value || '').trim();
   if (!clean) return '';
@@ -174,6 +180,7 @@ function formatRow(row) {
     '[' + (row.stage || 'Unknown') + ']',
   ].filter(Boolean);
   if (row.applied) bits.push(row.applied);
+  if (row.salaryMin || row.salaryMax) bits.push('salary: $' + (row.salaryMin || 0).toLocaleString() + '-$' + (row.salaryMax || 0).toLocaleString());
   if (row.hmContact) bits.push('contact: ' + row.hmContact);
   if (row.notes) bits.push('notes: ' + row.notes);
   return bits.join(' ');
@@ -240,6 +247,8 @@ async function cmdAdd(args) {
     stage: normalizeStage(args.stage),
     hmContact: String(args.contact || args.hmContact || '').trim(),
     notes: String(args.notes || args.note || '').trim(),
+    salaryMin: normalizeSalary(args['salary-min'] ?? args.salaryMin),
+    salaryMax: normalizeSalary(args['salary-max'] ?? args.salaryMax),
   };
 
   rows.unshift(entry);
@@ -259,6 +268,8 @@ async function cmdUpdate(args) {
   if (args.stage) entry.stage = normalizeStage(args.stage);
   if (args.contact !== undefined) entry.hmContact = args.contact === true ? '' : String(args.contact).trim();
   if (args.notes !== undefined) entry.notes = args.notes === true ? '' : String(args.notes).trim();
+  if (args['salary-min'] !== undefined || args.salaryMin !== undefined) entry.salaryMin = normalizeSalary(args['salary-min'] ?? args.salaryMin);
+  if (args['salary-max'] !== undefined || args.salaryMax !== undefined) entry.salaryMax = normalizeSalary(args['salary-max'] ?? args.salaryMax);
   appendNote(entry, args.note);
 
   await writePipeline(rows);
